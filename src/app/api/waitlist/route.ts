@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { Resend } from 'resend'
 import { z } from 'zod'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+// Force dynamic — this route sends email and must never be statically pre-rendered
+export const dynamic = 'force-dynamic'
 
 const schema = z.object({
   email: z.string().email(),
@@ -10,22 +10,26 @@ const schema = z.object({
 })
 
 export async function POST(req: NextRequest) {
-  const body = await req.json().catch(() => null)
+  const body   = await req.json().catch(() => null)
   const parsed = schema.safeParse(body)
   if (!parsed.success) return NextResponse.json({ error: 'Invalid email' }, { status: 400 })
 
   const { email, name } = parsed.data
 
+  // Lazy-init Resend inside the handler so it never runs at build time
+  const { Resend } = await import('resend')
+  const resend = new Resend(process.env.RESEND_API_KEY)
+
   try {
-    // notify us
+    // Notify us
     await resend.emails.send({
-      from: process.env.RESEND_FROM_EMAIL ?? 'hello@fain.ge',
-      to:   'archilgu@gmail.com',
+      from:    process.env.RESEND_FROM_EMAIL ?? 'hello@fain.ge',
+      to:      'archilgu@gmail.com',
       subject: `New waitlist signup: ${email}`,
-      text: `Name: ${name ?? '—'}\nEmail: ${email}\nTime: ${new Date().toISOString()}`,
+      text:    `Name: ${name ?? '—'}\nEmail: ${email}\nTime: ${new Date().toISOString()}`,
     })
 
-    // confirm to the user
+    // Confirm to the user
     await resend.emails.send({
       from:    process.env.RESEND_FROM_EMAIL ?? 'hello@fain.ge',
       to:      email,
@@ -37,7 +41,7 @@ export async function POST(req: NextRequest) {
           </div>
           <h2 style="margin:28px 0 12px;font-size:22px">You're on the list.</h2>
           <p style="color:#6b6457;line-height:1.6">
-            We're giving early access to a small group of founders. 
+            We're giving early access to a small group of founders.
             We'll be in touch as soon as your spot is ready — usually within a few days.
           </p>
           <p style="color:#6b6457;line-height:1.6">

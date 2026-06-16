@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import Anthropic from '@anthropic-ai/sdk'
 import { rateLimit } from '@/lib/api/ratelimit'
 import { auth } from '@/lib/auth/config'
 import { headers } from 'next/headers'
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+export const dynamic = 'force-dynamic'
 
 const SYSTEM = `You are Fain, an AI financial controller for SME founders. You give direct, plain-English answers about their finances.
 
@@ -31,6 +30,10 @@ export async function POST(req: NextRequest) {
   const userContent = context
     ? `<financial_context>\n${context}\n</financial_context>\n\n${message}`
     : message
+
+  // Lazy-init Anthropic inside the handler — never runs at build time
+  const Anthropic = (await import('@anthropic-ai/sdk')).default
+  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
   // Stream the response
   const stream = await anthropic.messages.stream({

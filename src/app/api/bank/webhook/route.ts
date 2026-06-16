@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'crypto'
 
+export const dynamic = "force-dynamic"
+
 // Salt Edge calls this when new transactions are available.
 // We log the event — the client will re-fetch on next load.
 // No financial data is stored server-side.
