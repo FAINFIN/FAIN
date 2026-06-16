@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { WaitlistForm } from '@/components/landing/WaitlistForm'
+import { BankCarousel } from '@/components/landing/BankCarousel'
 
 export const metadata: Metadata = {
   title: 'Fain — Your AI financial controller',
@@ -204,26 +205,7 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="marquee-wrap">
-            <div className="marquee-track">
-              {[...BANKS, ...BANKS].map((b, i) => (
-                <div key={i} className="conn" title={b.name}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={`https://logo.clearbit.com/${b.domain}`}
-                    alt={b.name}
-                    className="bank-logo"
-                    onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
-                      e.currentTarget.style.display = 'none'
-                      const fb = e.currentTarget.nextElementSibling as HTMLElement | null
-                      if (fb) fb.style.display = 'inline'
-                    }}
-                  />
-                  <span className="bank-short" style={{ display: 'none' }}>{b.short}</span>
-                </div>
-              ))}
-            </div>
-          </div>
+          <BankCarousel banks={BANKS} />
 
           <div className="features">
             {FEATURES.map(f => (
