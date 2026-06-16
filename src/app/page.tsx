@@ -205,7 +205,7 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <BankCarousel banks={BANKS} />
+          <BankCarousel />
 
           <div className="features">
             {FEATURES.map(f => (
