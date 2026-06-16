@@ -3,8 +3,8 @@
 const BANKS = [
   { name: 'Bank of Georgia',           slug: 'bog', ext: 'png' },
   { name: 'TBC Bank',                  slug: 'tbc', ext: 'png' },
-  { name: 'BasisBank',                 slug: 'basis', ext: 'svg' },
-  { name: 'Silk Bank',                 slug: 'silk', ext: 'svg' },
+  { name: 'BasisBank',                 slug: 'basis', ext: 'png' },
+  { name: 'Silk Road Bank',            slug: 'silk', ext: 'png' },
   { name: 'Cartu Bank',                slug: 'cartu', ext: 'png' },
   { name: 'Halyk Bank',                slug: 'halyk', ext: 'png' },
   { name: 'Terabank',                  slug: 'tera', ext: 'svg' },
