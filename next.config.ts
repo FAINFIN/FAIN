@@ -5,9 +5,7 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [],
   },
-  eslint: {
-    ignoreDuringBuilds: true, // ESLint handles style; tsc handles correctness
-  },
+
 }
 
 export default nextConfig
