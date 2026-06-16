@@ -86,7 +86,7 @@ export function SettingsClient() {
                     <div style={{ fontSize: 12, color: 'var(--text-low)' }}>
                       {accs.length} {locale === 'ka' ? 'ანგარიში' : `account${accs.length !== 1 ? 's' : ''}`}
                       {' · '}
-                      {locale === 'ka' ? 'ბოლო სინქრ.:' : 'last sync:'} {conn.lastSync ? new Date(conn.lastSync).toLocaleDateString(locale === 'ka' ? 'ka-GE' : 'en-GB') : '—'}
+                      {locale === 'ka' ? 'ბოლო სინქრ.:' : 'last sync:'} {conn.lastSyncedAt ? new Date(conn.lastSyncedAt).toLocaleDateString(locale === 'ka' ? 'ka-GE' : 'en-GB') : '—'}
                     </div>
                   </div>
                   <button
