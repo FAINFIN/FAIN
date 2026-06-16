@@ -7,7 +7,22 @@ export const metadata: Metadata = {
   description: 'Fain connects to your bank and books, then answers in plain language — cash, burn, runway, a vendor, a what-if. Real answers from your real numbers.',
 }
 
-const CONNECTORS = ['Bank of Georgia', 'TBC Bank', 'NBG Open Banking', 'QuickBooks', 'Xero']
+const BANKS = [
+  'Bank of Georgia',
+  'BasisBank',
+  'Silk Bank',
+  'Cartu Bank',
+  'Halyk Bank Georgia',
+  'Terabank',
+  'Liberty Bank',
+  'ProCredit Bank',
+  'TBC Bank',
+  'Ziraat Bank Georgia',
+  'Pasha Bank Georgia',
+  'Isbank Georgia',
+  'Credo Bank',
+  'Paysera Bank Georgia',
+]
 
 const FEATURES = [
   {
@@ -96,12 +111,13 @@ export default function LandingPage() {
             </span>
             Read-only · never stores bank logins
             <span className="sep" />
-            {['BOG', 'TBC', 'NBG', 'QuickBooks', 'Xero'].map((logo, i) => (
-              <span key={logo} className="flex items-center gap-[inherit]">
-                <span className="logo">{logo}</span>
-                {i < 4 && <span className="sep" />}
-              </span>
-            ))}
+            14 Georgian banks supported
+            <span className="sep" />
+            <span className="logo">BOG</span>
+            <span className="sep" />
+            <span className="logo">TBC</span>
+            <span className="sep" />
+            <span className="logo">+ 12 more</span>
           </div>
         </div>
       </section>
@@ -188,13 +204,15 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="conn-grid">
-            {CONNECTORS.map(name => (
-              <div key={name} className="conn">
-                <span className="dot" />
-                <span className="nm">{name}</span>
-              </div>
-            ))}
+          <div className="marquee-wrap">
+            <div className="marquee-track">
+              {[...BANKS, ...BANKS].map((name, i) => (
+                <div key={i} className="conn">
+                  <span className="dot" />
+                  <span className="nm">JSC &ldquo;{name}&rdquo;</span>
+                </div>
+              ))}
+            </div>
           </div>
 
           <div className="features">
