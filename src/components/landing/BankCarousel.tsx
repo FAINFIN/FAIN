@@ -12,7 +12,7 @@ const BANKS = [
   { name: 'ProCredit Bank',            slug: 'pcb', ext: 'png' },
   { name: 'Ziraat Bank',               slug: 'ziraat', ext: 'svg' },
   { name: 'Pasha Bank',                slug: 'pasha', ext: 'svg' },
-  { name: 'Isbank Georgia',            slug: 'isbank', ext: 'svg' },
+  { name: 'Isbank Georgia',            slug: 'isbank', ext: 'png' },
   { name: 'Credo Bank',                slug: 'credo', ext: 'svg' },
   { name: 'Paysera',                   slug: 'paysera', ext: 'svg' },
 ]
