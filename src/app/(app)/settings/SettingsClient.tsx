@@ -77,11 +77,11 @@ export function SettingsClient() {
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontWeight: 700, fontSize: 11, color: 'var(--text-low)',
                   }}>
-                    {isDemo ? '📊' : (conn.providerName ?? 'Bk').slice(0, 3)}
+                    {isDemo ? '📊' : (conn.provider ?? 'Bk').slice(0, 3)}
                   </div>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontWeight: 600, fontSize: 14 }}>
-                      {isDemo ? (locale === 'ka' ? 'სადემო მონაცემები' : 'Sample Data') : (conn.providerName ?? conn.id)}
+                      {isDemo ? (locale === 'ka' ? 'სადემო მონაცემები' : 'Sample Data') : (conn.provider ?? conn.id)}
                     </div>
                     <div style={{ fontSize: 12, color: 'var(--text-low)' }}>
                       {accs.length} {locale === 'ka' ? 'ანგარიში' : `account${accs.length !== 1 ? 's' : ''}`}
