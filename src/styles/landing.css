@@ -311,8 +311,8 @@
 .conn {
   display: inline-flex;
   align-items: center;
-  gap: 9px;
-  padding: 9px 18px;
+  gap: 0;
+  padding: 10px 16px;
   border-radius: var(--r-pill);
   border: 1px solid var(--border-subtle);
   background: var(--surface-primary);
@@ -329,7 +329,10 @@
 }
 
 .bank-logo {
-  border-radius: 7px;
+  height: 28px;
+  width: auto;
+  max-width: 100px;
+  object-fit: contain;
   flex: 0 0 auto;
   display: block;
 }

@@ -1,12 +1,12 @@
 'use client'
 
 const BANKS = [
-  { name: 'Bank of Georgia',           slug: 'bog', ext: 'svg' },
-  { name: 'TBC Bank',                  slug: 'tbc', ext: 'svg' },
+  { name: 'Bank of Georgia',           slug: 'bog', ext: 'png' },
+  { name: 'TBC Bank',                  slug: 'tbc', ext: 'png' },
   { name: 'BasisBank',                 slug: 'basis', ext: 'svg' },
   { name: 'Silk Bank',                 slug: 'silk', ext: 'svg' },
-  { name: 'Cartu Bank',                slug: 'cartu', ext: 'svg' },
-  { name: 'Halyk Bank',                slug: 'halyk', ext: 'svg' },
+  { name: 'Cartu Bank',                slug: 'cartu', ext: 'png' },
+  { name: 'Halyk Bank',                slug: 'halyk', ext: 'png' },
   { name: 'Terabank',                  slug: 'tera', ext: 'svg' },
   { name: 'Liberty Bank',              slug: 'liberty', ext: 'png' },
   { name: 'ProCredit Bank',            slug: 'pcb', ext: 'png' },
@@ -28,10 +28,7 @@ export function BankCarousel() {
               src={`/logos/${b.slug}.${b.ext}`}
               alt={b.name}
               className="bank-logo"
-              width={28}
-              height={28}
             />
-            <span className="bank-nm">{b.name}</span>
           </div>
         ))}
       </div>
