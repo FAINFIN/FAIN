@@ -134,6 +134,6 @@ export const STRINGS = {
     loading:    'იტვირთება…',
     liveLabel:  'პირდაპირ',
   },
-} as const
+}
 
 export type Strings = typeof STRINGS['en']

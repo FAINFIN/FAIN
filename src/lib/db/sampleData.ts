@@ -18,29 +18,29 @@ function tx(
   amount: number, type: 'credit' | 'debit',
   description: string, category: string
 ): Transaction {
-  return { id, accountId, date, amount, type, description, category, currency: 'GEL' }
+  return { id, accountId, date, amount, type, description, category, currency: 'GEL', pending: false }
 }
 
 export const SAMPLE_ACCOUNTS: Account[] = [
   {
-    id:          'sample-bog-main',
-    connectionId:'sample-connection',
-    name:        'BOG Business Current',
-    nature:      'account',
-    balance:     487_320,
-    currency:    'GEL',
-    extra:       { alias: 'Main operating', bankName: 'Bank of Georgia' },
-    syncedAt:    new Date(),
+    id:               'sample-bog-main',
+    connectionId:     'sample-connection',
+    provider:         'bog',
+    name:             'BOG Business Current',
+    type:             'checking',
+    balance:          487_320,
+    currency:         'GEL',
+    balanceUpdatedAt: new Date(),
   },
   {
-    id:          'sample-tbc-usd',
-    connectionId:'sample-connection',
-    name:        'TBC Business USD',
-    nature:      'account',
-    balance:     62_500,
-    currency:    'USD',
-    extra:       { alias: 'USD reserve', bankName: 'TBC Bank' },
-    syncedAt:    new Date(),
+    id:               'sample-tbc-usd',
+    connectionId:     'sample-connection',
+    provider:         'tbc',
+    name:             'TBC Business USD',
+    type:             'checking',
+    balance:          62_500,
+    currency:         'USD',
+    balanceUpdatedAt: new Date(),
   },
 ]
 
@@ -121,12 +121,13 @@ export async function loadSampleData(): Promise<void> {
 
   // Write a synthetic connection record
   await db.connections.add({
-    id:         'sample-connection',
-    providerName: 'Sample Data',
-    status:     'active',
-    lastSync:   new Date(),
-    accountIds: SAMPLE_ACCOUNTS.map(a => a.id),
-    extra:      { sample: true },
+    id:                   'sample-connection',
+    provider:             'bog',
+    saltEdgeConnectionId: 'sample',
+    saltEdgeToken:        'sample',
+    accountIds:           SAMPLE_ACCOUNTS.map(a => a.id),
+    connectedAt:          new Date(),
+    expiresAt:            new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
   })
 
   await db.accounts.bulkAdd(SAMPLE_ACCOUNTS)

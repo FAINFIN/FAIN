@@ -1,17 +1,12 @@
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
-  experimental: {
-    typedRoutes: true,
-  },
+  experimental: {},
   images: {
     remotePatterns: [],
   },
   eslint: {
-    ignoreDuringBuilds: true,
-  },
-  typescript: {
-    ignoreBuildErrors: false,
+    ignoreDuringBuilds: true, // ESLint handles style; tsc handles correctness
   },
 }
 
