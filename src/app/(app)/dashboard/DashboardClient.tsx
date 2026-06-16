@@ -114,7 +114,7 @@ export function DashboardClient() {
               <CartesianGrid strokeDasharray="3 6" stroke="var(--border-subtle)" vertical={false} />
               <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'var(--text-low)' }} axisLine={false} tickLine={false} />
               <YAxis tickFormatter={v => fmt(v, true)} tick={{ fontSize: 11, fill: 'var(--text-low)' }} axisLine={false} tickLine={false} width={48} />
-              <Tooltip formatter={(v: number) => fmt(v)} contentStyle={{ background: 'var(--surface-primary)', border: '1px solid var(--border-subtle)', borderRadius: 10, fontSize: 13 }} />
+              <Tooltip formatter={(v) => fmt(Number(v ?? 0))} contentStyle={{ background: 'var(--surface-primary)', border: '1px solid var(--border-subtle)', borderRadius: 10, fontSize: 13 }} />
               <Bar dataKey="income"   fill="var(--pos)"    radius={[3,3,0,0]} name={locale === 'ka' ? 'შემოსავალი' : 'Income'} />
               <Bar dataKey="expenses" fill="var(--stone-5)" radius={[3,3,0,0]} name={locale === 'ka' ? 'ხარჯი' : 'Expenses'} />
             </BarChart>
@@ -133,7 +133,7 @@ export function DashboardClient() {
               <CartesianGrid strokeDasharray="3 6" stroke="var(--border-subtle)" vertical={false} />
               <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'var(--text-low)' }} axisLine={false} tickLine={false} />
               <YAxis tickFormatter={v => fmt(v, true)} tick={{ fontSize: 11, fill: 'var(--text-low)' }} axisLine={false} tickLine={false} width={48} />
-              <Tooltip formatter={(v: number) => fmt(v)} contentStyle={{ background: 'var(--surface-primary)', border: '1px solid var(--border-subtle)', borderRadius: 10, fontSize: 13 }} />
+              <Tooltip formatter={(v) => fmt(Number(v ?? 0))} contentStyle={{ background: 'var(--surface-primary)', border: '1px solid var(--border-subtle)', borderRadius: 10, fontSize: 13 }} />
               <Area dataKey="net" stroke="var(--tan-9)" fill="url(#netGrad)" strokeWidth={2.5} name={locale === 'ka' ? 'წმინდა' : 'Net'} />
             </AreaChart>
           </ResponsiveContainer>

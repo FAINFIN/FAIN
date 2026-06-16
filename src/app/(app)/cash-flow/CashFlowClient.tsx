@@ -178,7 +178,7 @@ export function CashFlowClient() {
                 <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'var(--text-low)' }} axisLine={false} tickLine={false} interval={2} />
                 <YAxis tickFormatter={v => fmt(v, true)} tick={{ fontSize: 11, fill: 'var(--text-low)' }} axisLine={false} tickLine={false} width={56} />
                 <ReferenceLine y={0} stroke="var(--neg)" strokeWidth={1.5} />
-                <Tooltip formatter={(v: number) => fmt(v)} contentStyle={{ background: 'var(--surface-primary)', border: '1px solid var(--border-subtle)', borderRadius: 10, fontSize: 13 }} />
+                <Tooltip formatter={(v) => fmt(Number(v ?? 0))} contentStyle={{ background: 'var(--surface-primary)', border: '1px solid var(--border-subtle)', borderRadius: 10, fontSize: 13 }} />
                 <Area dataKey="baseline" stroke="var(--stone-7)" fill="url(#baseGrad)" strokeWidth={2} name={t.cashFlow.baseline} />
                 {changed && <Area dataKey="scenario" stroke="var(--tan-9)" fill="url(#scenGrad)" strokeWidth={2} strokeDasharray="6 4" name={t.cashFlow.scenario} />}
               </AreaChart>
@@ -229,7 +229,7 @@ export function CashFlowClient() {
               <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'var(--text-low)' }} axisLine={false} tickLine={false} />
               <YAxis tickFormatter={v => fmt(v, true)} tick={{ fontSize: 11, fill: 'var(--text-low)' }} axisLine={false} tickLine={false} width={56} />
               <ReferenceLine y={0} stroke="var(--border-subtle)" strokeWidth={1} />
-              <Tooltip formatter={(v: number) => fmt(v)} contentStyle={{ background: 'var(--surface-primary)', border: '1px solid var(--border-subtle)', borderRadius: 10, fontSize: 13 }} />
+              <Tooltip formatter={(v) => fmt(Number(v ?? 0))} contentStyle={{ background: 'var(--surface-primary)', border: '1px solid var(--border-subtle)', borderRadius: 10, fontSize: 13 }} />
               <Line dataKey="net" stroke="var(--tan-9)" strokeWidth={2.5} dot={{ r: 3, fill: 'var(--tan-9)' }} name={locale === 'ka' ? 'წმინდა' : 'Net'} />
             </LineChart>
           </ResponsiveContainer>
