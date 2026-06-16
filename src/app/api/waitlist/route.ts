@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
     await resend.emails.send({
       from:    process.env.RESEND_FROM_EMAIL ?? 'hello@fain.ge',
       to:      email,
-      subject: 'You're on the Fain waitlist',
+      subject: "You're on the Fain waitlist",
       html: `
         <div style="font-family:system-ui,sans-serif;max-width:480px;margin:0 auto;padding:40px 24px;color:#29261b">
           <div style="font-size:26px;font-weight:700;letter-spacing:-0.03em">
