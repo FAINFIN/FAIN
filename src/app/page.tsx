@@ -8,20 +8,20 @@ export const metadata: Metadata = {
 }
 
 const BANKS = [
-  'Bank of Georgia',
-  'BasisBank',
-  'Silk Bank',
-  'Cartu Bank',
-  'Halyk Bank Georgia',
-  'Terabank',
-  'Liberty Bank',
-  'ProCredit Bank',
-  'TBC Bank',
-  'Ziraat Bank Georgia',
-  'Pasha Bank Georgia',
-  'Isbank Georgia',
-  'Credo Bank',
-  'Paysera Bank Georgia',
+  { name: 'Bank of Georgia',      short: 'BOG',     domain: 'bankofgeorgia.ge'   },
+  { name: 'BasisBank',            short: 'Basis',   domain: 'basisbank.ge'       },
+  { name: 'Silk Bank',            short: 'Silk',    domain: 'silkbank.ge'        },
+  { name: 'Cartu Bank',           short: 'Cartu',   domain: 'cartubank.ge'       },
+  { name: 'Halyk Bank Georgia',   short: 'Halyk',   domain: 'halykbank.ge'       },
+  { name: 'Terabank',             short: 'Tera',    domain: 'terabank.ge'        },
+  { name: 'Liberty Bank',         short: 'Liberty', domain: 'libertybank.ge'     },
+  { name: 'ProCredit Bank',       short: 'PCB',     domain: 'procreditbank.ge'   },
+  { name: 'TBC Bank',             short: 'TBC',     domain: 'tbcbank.ge'         },
+  { name: 'Ziraat Bank Georgia',  short: 'Ziraat',  domain: 'ziraatbank.ge'      },
+  { name: 'Pasha Bank Georgia',   short: 'Pasha',   domain: 'pashabank.ge'       },
+  { name: 'Isbank Georgia',       short: 'Isbank',  domain: 'isbank.com.ge'      },
+  { name: 'Credo Bank',           short: 'Credo',   domain: 'credobank.ge'       },
+  { name: 'Paysera Bank Georgia', short: 'Paysera', domain: 'paysera.com'        },
 ]
 
 const FEATURES = [
@@ -206,10 +206,20 @@ export default function LandingPage() {
 
           <div className="marquee-wrap">
             <div className="marquee-track">
-              {[...BANKS, ...BANKS].map((name, i) => (
-                <div key={i} className="conn">
-                  <span className="dot" />
-                  <span className="nm">JSC &ldquo;{name}&rdquo;</span>
+              {[...BANKS, ...BANKS].map((b, i) => (
+                <div key={i} className="conn" title={b.name}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={`https://logo.clearbit.com/${b.domain}`}
+                    alt={b.name}
+                    className="bank-logo"
+                    onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
+                      e.currentTarget.style.display = 'none'
+                      const fb = e.currentTarget.nextElementSibling as HTMLElement | null
+                      if (fb) fb.style.display = 'inline'
+                    }}
+                  />
+                  <span className="bank-short" style={{ display: 'none' }}>{b.short}</span>
                 </div>
               ))}
             </div>
