@@ -1,0 +1,69 @@
+/* ─────────────────────────────────────────────
+   FAIN DESIGN TOKENS
+   Single source of truth for all design values.
+   ───────────────────────────────────────────── */
+
+:root {
+  /* ── Fonts ── */
+  --font-sans:    'Familjen Grotesk', 'Styrene B', -apple-system, system-ui, sans-serif;
+  --font-serif:   'Instrument Serif', 'Tiempos Text', Georgia, serif;
+  --font-mono:    'Geist Mono', 'Fira Code', monospace;
+  --font-georgian:'Noto Sans Georgian', sans-serif;
+  --font-logo:    var(--font-sans);
+  --font-num:     var(--font-mono);
+
+  /* ── Stone scale (warm neutral) ── */
+  --stone-1:  #fefdfb;
+  --stone-2:  #faf8f4;
+  --stone-3:  #f4f2ec;
+  --stone-4:  #ece8e0;
+  --stone-5:  #e2ddd5;
+  --stone-6:  #d4cfc6;
+  --stone-7:  #b5b0a6;
+  --stone-8:  #8a8377;
+  --stone-9:  #6b6457;
+  --stone-10: #524d42;
+  --stone-11: #3a352c;
+  --stone-12: #29261b;
+
+  /* ── Tangerine (brand accent) ── */
+  --tan-9:    #FD5400;
+  --tan-10:   #e84e00;
+  --tan-11:   #c44200;
+  --tan-soft: color-mix(in oklch, #FD5400 10%, transparent);
+
+  /* ── Semantic: surfaces ── */
+  --surface-primary:   var(--stone-1);
+  --surface-secondary: var(--stone-3);
+  --surface-dark:      #2b2620;
+  --surface-dark-2:    #201e18;
+
+  /* ── Semantic: text ── */
+  --text-high:     var(--stone-12);
+  --text-mid:      var(--stone-9);
+  --text-low:      var(--stone-8);
+  --text-inverted: #f7f4ef;
+
+  /* ── Semantic: borders ── */
+  --border-subtle: var(--stone-4);
+  --border-loud:   var(--stone-6);
+
+  /* ── Semantic: status ── */
+  --pos: #2d9e5f;
+  --neg: #d44c47;
+
+  /* ── Radii ── */
+  --r-sm:    8px;
+  --r-card:  16px;
+  --r-panel: 18px;
+  --r-pill:  100px;
+
+  /* ── Shadows ── */
+  --sh-sm:   0 1px 2px rgba(40,33,20,.07), 0 0 0 1px rgba(40,33,20,.04);
+  --sh-card: 0 2px 8px rgba(40,33,20,.08), 0 0 0 1px rgba(40,33,20,.05);
+  --sh-lift: 0 4px 20px rgba(40,33,20,.10), 0 0 0 1px rgba(40,33,20,.06);
+
+  /* ── Transitions ── */
+  --t-fast: 150ms ease;
+  --t-base: 200ms ease;
+}

@@ -1,0 +1,21 @@
+
+/* ── Georgian locale overrides ─────────────────────────── */
+:lang(ka), [data-locale="ka"] {
+  font-family: 'Noto Sans Georgian', 'Familjen Grotesk', -apple-system, system-ui, sans-serif;
+}
+
+:lang(ka) .serif,
+[data-locale="ka"] .serif {
+  /* Noto Serif Georgian not loaded — fall back to sans for Georgian */
+  font-family: 'Noto Sans Georgian', -apple-system, system-ui, sans-serif;
+  font-style: normal;
+}
+
+/* Lari symbol — ensure it renders from system fonts if Familjen doesn't have it */
+.lari { font-family: 'Noto Sans Georgian', 'Familjen Grotesk', system-ui, sans-serif; }
+
+/* ── Toast animation ──────────────────────────────────── */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
