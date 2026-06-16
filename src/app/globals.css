@@ -238,6 +238,26 @@ a { color: inherit; text-decoration: none; }
 .d5     { animation-delay: 0.30s; }
 .d6     { animation-delay: 0.38s; }
 
+/* ── Form inputs ── */
+.input {
+  height: 48px;
+  padding: 0 16px;
+  border-radius: 12px;
+  border: 1.5px solid var(--border-loud);
+  background: var(--surface-primary);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  color: var(--text-high);
+  outline: none;
+  transition: border-color var(--t-fast), box-shadow var(--t-fast);
+  width: 100%;
+}
+.input::placeholder { color: var(--stone-7); }
+.input:focus {
+  border-color: var(--tan-9);
+  box-shadow: 0 0 0 3px var(--tan-soft);
+}
+
 /* ── Spark ── */
 .spark {
   display: inline-block;

@@ -1,13 +1,29 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { WaitlistForm } from '@/components/landing/WaitlistForm'
+import { BankCarousel } from '@/components/landing/BankCarousel'
 
 export const metadata: Metadata = {
   title: 'Fain — Your AI financial controller',
   description: 'Fain connects to your bank and books, then answers in plain language — cash, burn, runway, a vendor, a what-if. Real answers from your real numbers.',
 }
 
-const CONNECTORS = ['Bank of Georgia', 'TBC Bank', 'NBG Open Banking', 'QuickBooks', 'Xero']
+const BANKS = [
+  { name: 'Bank of Georgia',      short: 'BOG',     domain: 'bankofgeorgia.ge'   },
+  { name: 'BasisBank',            short: 'Basis',   domain: 'basisbank.ge'       },
+  { name: 'Silk Bank',            short: 'Silk',    domain: 'silkbank.ge'        },
+  { name: 'Cartu Bank',           short: 'Cartu',   domain: 'cartubank.ge'       },
+  { name: 'Halyk Bank Georgia',   short: 'Halyk',   domain: 'halykbank.ge'       },
+  { name: 'Terabank',             short: 'Tera',    domain: 'terabank.ge'        },
+  { name: 'Liberty Bank',         short: 'Liberty', domain: 'libertybank.ge'     },
+  { name: 'ProCredit Bank',       short: 'PCB',     domain: 'procreditbank.ge'   },
+  { name: 'TBC Bank',             short: 'TBC',     domain: 'tbcbank.ge'         },
+  { name: 'Ziraat Bank Georgia',  short: 'Ziraat',  domain: 'ziraatbank.ge'      },
+  { name: 'Pasha Bank Georgia',   short: 'Pasha',   domain: 'pashabank.ge'       },
+  { name: 'Isbank Georgia',       short: 'Isbank',  domain: 'isbank.com.ge'      },
+  { name: 'Credo Bank',           short: 'Credo',   domain: 'credobank.ge'       },
+  { name: 'Paysera Bank Georgia', short: 'Paysera', domain: 'paysera.com'        },
+]
 
 const FEATURES = [
   {
@@ -96,12 +112,13 @@ export default function LandingPage() {
             </span>
             Read-only · never stores bank logins
             <span className="sep" />
-            {['BOG', 'TBC', 'NBG', 'QuickBooks', 'Xero'].map((logo, i) => (
-              <span key={logo} className="flex items-center gap-[inherit]">
-                <span className="logo">{logo}</span>
-                {i < 4 && <span className="sep" />}
-              </span>
-            ))}
+            14 Georgian banks supported
+            <span className="sep" />
+            <span className="logo">BOG</span>
+            <span className="sep" />
+            <span className="logo">TBC</span>
+            <span className="sep" />
+            <span className="logo">+ 12 more</span>
           </div>
         </div>
       </section>
@@ -188,14 +205,7 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="conn-grid">
-            {CONNECTORS.map(name => (
-              <div key={name} className="conn">
-                <span className="dot" />
-                <span className="nm">{name}</span>
-              </div>
-            ))}
-          </div>
+          <BankCarousel />
 
           <div className="features">
             {FEATURES.map(f => (
