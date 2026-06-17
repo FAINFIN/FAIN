@@ -30,7 +30,8 @@ export async function POST(req: NextRequest) {
       .where(eq(bankConnections.saltEdgeConnectionId, connectionId))
       .limit(1)
 
-    if (conn.length > 0) {
+    const record = conn[0]
+    if (record) {
       if (type === 'connection.success' || type === 'attempts.success') {
         await db.update(bankConnections)
           .set({ status: 'connected', lastSyncedAt: new Date() })
@@ -38,7 +39,7 @@ export async function POST(req: NextRequest) {
 
         await db.insert(syncLog).values({
           id:           nanoid(),
-          connectionId: conn[0].id,
+          connectionId: record.id,
           status:       'ok',
         })
       }
@@ -50,7 +51,7 @@ export async function POST(req: NextRequest) {
 
         await db.insert(syncLog).values({
           id:           nanoid(),
-          connectionId: conn[0].id,
+          connectionId: record.id,
           status:       'error',
           error:        JSON.stringify(event.data?.error ?? {}),
         })
@@ -63,6 +64,7 @@ export async function POST(req: NextRequest) {
       }
     }
   }
+
 
   return NextResponse.json({ acknowledged: true })
 }
