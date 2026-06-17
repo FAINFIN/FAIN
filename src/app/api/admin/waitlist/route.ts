@@ -8,6 +8,7 @@ export const dynamic = 'force-dynamic'
 
 function checkAdmin(req: NextRequest) {
   const secret = req.headers.get('x-admin-secret')
+  console.log('[admin] secret received len:', secret?.length, '| env set:', !!process.env.ADMIN_SECRET, '| env len:', process.env.ADMIN_SECRET?.length)
   return secret === process.env.ADMIN_SECRET
 }
 
