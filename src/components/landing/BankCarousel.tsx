@@ -11,8 +11,8 @@ const BANKS = [
   { name: 'Liberty Bank',              slug: 'liberty', ext: 'png' },
   { name: 'ProCredit Bank',            slug: 'pcb', ext: 'png' },
   { name: 'Ziraat Bank',               slug: 'ziraat', ext: 'svg' },
-  { name: 'Pasha Bank',                slug: 'pasha', ext: 'svg' },
-  { name: 'Isbank Georgia',            slug: 'isbank', ext: 'png' },
+  { name: 'Pasha Bank',                slug: 'pasha', ext: 'png' },
+  { name: 'Isbank Georgia',            slug: 'isbank', ext: 'svg' },
   { name: 'Credo Bank',                slug: 'credo', ext: 'svg' },
   { name: 'Paysera',                   slug: 'paysera', ext: 'svg' },
 ]
