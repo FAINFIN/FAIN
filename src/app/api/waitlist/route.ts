@@ -1,12 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
+import { db } from '@/lib/db/client.server'
+import { waitlist } from '@/lib/db/schema.server'
+import { eq } from 'drizzle-orm'
+import { nanoid } from 'nanoid'
 
-// Force dynamic — this route sends email and must never be statically pre-rendered
 export const dynamic = 'force-dynamic'
 
 const schema = z.object({
-  email: z.string().email(),
-  name:  z.string().min(1).optional(),
+  email:   z.string().email(),
+  name:    z.string().min(1).optional(),
+  company: z.string().optional(),
 })
 
 export async function POST(req: NextRequest) {
@@ -14,24 +18,36 @@ export async function POST(req: NextRequest) {
   const parsed = schema.safeParse(body)
   if (!parsed.success) return NextResponse.json({ error: 'Invalid email' }, { status: 400 })
 
-  const { email, name } = parsed.data
+  const { email, name, company } = parsed.data
 
-  // Lazy-init Resend inside the handler so it never runs at build time
+  // Check for duplicate
+  const existing = await db.select().from(waitlist).where(eq(waitlist.email, email)).limit(1)
+  if (existing.length > 0) {
+    return NextResponse.json({ ok: true, duplicate: true })
+  }
+
+  // Persist to DB
+  await db.insert(waitlist).values({
+    id:      nanoid(),
+    email,
+    name:    name ?? null,
+    company: company ?? null,
+    status:  'pending',
+  })
+
   const { Resend } = await import('resend')
   const resend = new Resend(process.env.RESEND_API_KEY)
 
   try {
-    // Notify us
     await resend.emails.send({
-      from:    process.env.RESEND_FROM_EMAIL ?? 'hello@fain.ge',
+      from:    process.env.RESEND_FROM ?? 'Fain <noreply@fain.ge>',
       to:      'archilgu@gmail.com',
       subject: `New waitlist signup: ${email}`,
-      text:    `Name: ${name ?? '—'}\nEmail: ${email}\nTime: ${new Date().toISOString()}`,
+      text:    `Name: ${name ?? '—'}\nEmail: ${email}\nCompany: ${company ?? '—'}\nTime: ${new Date().toISOString()}`,
     })
 
-    // Confirm to the user
     await resend.emails.send({
-      from:    process.env.RESEND_FROM_EMAIL ?? 'hello@fain.ge',
+      from:    process.env.RESEND_FROM ?? 'Fain <noreply@fain.ge>',
       to:      email,
       subject: "You're on the Fain waitlist",
       html: `
@@ -42,7 +58,7 @@ export async function POST(req: NextRequest) {
           <h2 style="margin:28px 0 12px;font-size:22px">You're on the list.</h2>
           <p style="color:#6b6457;line-height:1.6">
             We're giving early access to a small group of founders.
-            We'll be in touch as soon as your spot is ready — usually within a few days.
+            We'll be in touch as soon as your spot is ready.
           </p>
           <p style="color:#6b6457;line-height:1.6">
             In the meantime, if you have questions just reply to this email.
@@ -51,10 +67,10 @@ export async function POST(req: NextRequest) {
         </div>
       `,
     })
-
-    return NextResponse.json({ ok: true })
   } catch (err) {
-    console.error('[waitlist]', err)
-    return NextResponse.json({ error: 'Failed to send' }, { status: 500 })
+    console.error('[waitlist] email error', err)
+    // Don't fail the request if email fails — signup is already saved to DB
   }
+
+  return NextResponse.json({ ok: true })
 }

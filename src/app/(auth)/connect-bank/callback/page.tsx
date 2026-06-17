@@ -13,14 +13,20 @@ function CallbackInner() {
   useEffect(() => {
     const connectionIdRaw = params.get('connection_id')
     if (!connectionIdRaw) { setStatus('error'); return }
-    // Narrow to string before entering async closure so TypeScript doesn't widen
     const connectionId: string = connectionIdRaw
 
     async function sync() {
       try {
-        const db     = getDb()
-        const srcId  = (sessionStorage.getItem('fain_connecting') ?? 'bog') as Provider
+        const db    = getDb()
+        const srcId = (sessionStorage.getItem('fain_connecting') ?? 'bog') as Provider
         sessionStorage.removeItem('fain_connecting')
+
+        // Register connection server-side (stores in Postgres)
+        await fetch('/api/bank/register', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ connectionId, provider: srcId }),
+        })
 
         // Fetch accounts via server proxy
         const accRes = await fetch('/api/bank/accounts', {
@@ -30,7 +36,7 @@ function CallbackInner() {
         })
         const { data: accounts } = await accRes.json() as { data: Record<string, unknown>[] }
 
-        // Store connection in IndexedDB (client-only, no server-side persistence)
+        // Store connection in IndexedDB
         await db.connections.put({
           id:                   connectionId,
           provider:             srcId,
@@ -43,10 +49,10 @@ function CallbackInner() {
         })
 
         for (const acc of accounts) {
-          const rawCcy  = acc.currency_code as string
-          const currency = (['GEL','USD','EUR'].includes(rawCcy) ? rawCcy : 'GEL') as import('@/types').Currency
-          const rawNature = acc.nature as string | undefined
-          const acctType  = (['checking','savings','credit','loan'].includes(rawNature ?? '')
+          const rawCcy     = acc.currency_code as string
+          const currency   = (['GEL','USD','EUR'].includes(rawCcy) ? rawCcy : 'GEL') as import('@/types').Currency
+          const rawNature  = acc.nature as string | undefined
+          const acctType   = (['checking','savings','credit','loan'].includes(rawNature ?? '')
             ? rawNature : 'checking') as import('@/types').AccountType
 
           await db.accounts.put({
@@ -70,10 +76,10 @@ function CallbackInner() {
           })
           const { data: txns } = await txRes.json() as { data: Record<string, unknown>[] }
           for (const tx of txns) {
-            const txAmt   = parseFloat(tx.amount as string)
-            const txCcy   = tx.currency_code as string
+            const txAmt      = parseFloat(tx.amount as string)
+            const txCcy      = tx.currency_code as string
             const txCurrency = (['GEL','USD','EUR'].includes(txCcy) ? txCcy : 'GEL') as import('@/types').Currency
-            const extra   = tx.extra as { merchant_name?: string } | undefined
+            const extra      = tx.extra as { merchant_name?: string } | undefined
             await db.transactions.put({
               id:           tx.id as string,
               accountId:    acc.id as string,
@@ -90,7 +96,7 @@ function CallbackInner() {
         }
 
         setStatus('done')
-        setTimeout(() => router.push('/connect-bank?synced=1'), 1200)
+        setTimeout(() => router.push('/dashboard'), 1500)
       } catch (e) {
         console.error(e)
         setStatus('error')
