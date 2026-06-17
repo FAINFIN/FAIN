@@ -123,14 +123,8 @@ export const auth = betterAuth({
       tenantId:     process.env.MICROSOFT_TENANT_ID ?? 'common',
     },
 
-    // Step 3: Apple Sign In
-    // Register at https://developer.apple.com → Certificates, Identifiers & Profiles
-    // Redirect URI: {APP_URL}/api/auth/callback/apple
-    // Note: Apple requires a Services ID (not just App ID) + private key for JWT signing
-    apple: {
-      clientId:     process.env.APPLE_CLIENT_ID!,
-      clientSecret: process.env.APPLE_CLIENT_SECRET!, // JWT-signed; generate with generateAppleClientSecret()
-    },
+    // Apple Sign In — skipped for now; add APPLE_CLIENT_ID + APPLE_CLIENT_SECRET to enable
+    // apple: { clientId: process.env.APPLE_CLIENT_ID!, clientSecret: process.env.APPLE_CLIENT_SECRET! },
   },
 
   plugins: [

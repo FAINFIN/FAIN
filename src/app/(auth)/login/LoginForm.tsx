@@ -235,18 +235,6 @@ export function LoginForm() {
           Continue with Microsoft
         </Button>
 
-        {/* Apple Sign In */}
-        <Button
-          variant="outline"
-          onClick={() => handleSocial('apple')}
-          loading={loading && provider === 'apple'}
-          disabled={loading && provider !== 'apple'}
-          style={{ width: '100%', padding: '12px 18px', gap: 10, justifyContent: 'center', background: 'var(--stone-12)', color: 'var(--text-inverted)', borderColor: 'var(--stone-12)' }}
-          type="button"
-        >
-          <AppleIcon />
-          Continue with Apple
-        </Button>
       </div>
 
       <div className="or">{t.auth.orWithEmail}</div>
