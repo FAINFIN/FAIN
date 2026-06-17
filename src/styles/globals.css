@@ -1,7 +1,7 @@
 
 /* ── Georgian locale overrides ─────────────────────────── */
 :lang(ka), [data-locale="ka"] {
-  font-family: 'Noto Sans Georgian', 'Familjen Grotesk', -apple-system, system-ui, sans-serif;
+  font-family: 'Noto Sans Georgian', 'Mulish', -apple-system, system-ui, sans-serif;
 }
 
 :lang(ka) .serif,

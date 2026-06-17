@@ -5,12 +5,16 @@
 
 :root {
   /* ── Fonts ── */
-  --font-sans:    'Familjen Grotesk', 'Styrene B', -apple-system, system-ui, sans-serif;
+  /* Mulish = body/UI text. Familjen Grotesk = wordmark only. */
+  --font-sans:    'Mulish', -apple-system, system-ui, sans-serif;
   --font-serif:   'Instrument Serif', 'Tiempos Text', Georgia, serif;
   --font-mono:    'Geist Mono', 'Fira Code', monospace;
   --font-georgian:'Noto Sans Georgian', sans-serif;
-  --font-logo:    var(--font-sans);
+  --font-logo:    'Familjen Grotesk', sans-serif;   /* wordmark / .word only */
   --font-num:     var(--font-mono);
+
+  /* ── Animation easing ── */
+  --ease: cubic-bezier(.2,.7,.2,1);
 
   /* ── Stone scale (warm neutral) ── */
   --stone-1:  #fefdfb;
