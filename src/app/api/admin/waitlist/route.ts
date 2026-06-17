@@ -8,8 +8,13 @@ export const dynamic = 'force-dynamic'
 
 function checkAdmin(req: NextRequest) {
   const secret = req.headers.get('x-admin-secret')
-  console.log('[admin] secret received len:', secret?.length, '| env set:', !!process.env.ADMIN_SECRET, '| env len:', process.env.ADMIN_SECRET?.length)
-  return secret === process.env.ADMIN_SECRET
+  const expected = process.env.ADMIN_SECRET
+  if (!expected) {
+    // Env var not set — log and deny
+    console.error('[admin] ADMIN_SECRET env var is not set!')
+    return false
+  }
+  return secret === expected
 }
 
 // GET — list all waitlist entries
