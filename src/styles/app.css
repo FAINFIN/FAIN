@@ -549,7 +549,7 @@
 .chat-input-card {
   background: var(--surface-primary);
   border: 1px solid var(--border-subtle);
-  border-radius: 18px;
+  border-radius: var(--r-panel);
   box-shadow: var(--sh-card);
   padding: 14px 16px;
 }
@@ -602,7 +602,7 @@
   margin-left: auto;
   width: 34px;
   height: 34px;
-  border-radius: 10px;
+  border-radius: var(--r-control);
   background: var(--tan-9);
   border: none;
   cursor: pointer;

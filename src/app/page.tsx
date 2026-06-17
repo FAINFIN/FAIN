@@ -71,7 +71,7 @@ export default function LandingPage() {
           </div>
           <div className="nav-cta">
             <Link className="btn btn-ghost btn-sm" href="/login">Log in</Link>
-            <Link className="btn btn-primary btn-sm" href="/register">Connect your bank</Link>
+            <Link className="btn btn-outline btn-sm" href="/register">Connect your bank</Link>
           </div>
         </div>
       </nav>
@@ -94,12 +94,24 @@ export default function LandingPage() {
           {/* starter chips */}
           <div className="starters rise d5">
             {[
-              { icon: '⚡', label: 'How long is my runway?' },
-              { icon: '🔍', label: 'What did we spend on AWS in Q3?' },
-              { icon: '→', label: 'Forecast if I hire 3 engineers' },
-              { icon: '✓', label: 'Am I profitable yet?' },
+              {
+                icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
+                label: 'How long is my runway?',
+              },
+              {
+                icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>,
+                label: 'What did we spend on AWS in Q3?',
+              },
+              {
+                icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>,
+                label: 'Forecast if I hire 3 engineers',
+              },
+              {
+                icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M9 12l2 2 4-4"/></svg>,
+                label: 'Am I profitable yet?',
+              },
             ].map(q => (
-              <Link key={q.label} href="/register" className="chip">{q.label}</Link>
+              <Link key={q.label} href="/register" className="chip">{q.icon}{q.label}</Link>
             ))}
           </div>
 
