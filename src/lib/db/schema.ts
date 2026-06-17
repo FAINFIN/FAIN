@@ -5,6 +5,7 @@ import type {
   Transaction,
   Scenario,
   ChatMessage,
+  Conversation,
   FainUser,
 } from '@/types'
 
@@ -17,17 +18,19 @@ interface SyncMeta {
 
 // ─── Database class ───────────────────────────────────────
 class FainDatabase extends Dexie {
-  user!:        EntityTable<FainUser,       'id'>
-  connections!: EntityTable<BankConnection, 'id'>
-  accounts!:    EntityTable<Account,        'id'>
-  transactions!:EntityTable<Transaction,    'id'>
-  syncMeta!:    EntityTable<SyncMeta,       'id'>
-  scenarios!:   EntityTable<Scenario,       'id'>
-  messages!:    EntityTable<ChatMessage,    'id'>
+  user!:         EntityTable<FainUser,       'id'>
+  connections!:  EntityTable<BankConnection, 'id'>
+  accounts!:     EntityTable<Account,        'id'>
+  transactions!: EntityTable<Transaction,    'id'>
+  syncMeta!:     EntityTable<SyncMeta,       'id'>
+  scenarios!:    EntityTable<Scenario,       'id'>
+  messages!:     EntityTable<ChatMessage,    'id'>
+  conversations!:EntityTable<Conversation,   'id'>
 
   constructor() {
     super('fain')
 
+    // v1 — original schema (messages without conversationId)
     this.version(1).stores({
       user:         'id',
       connections:  'id, provider, expiresAt',
@@ -36,6 +39,18 @@ class FainDatabase extends Dexie {
       syncMeta:     'id',
       scenarios:    'id, createdAt',
       messages:     'id, role, createdAt',
+    })
+
+    // v2 — add conversations table + conversationId index on messages
+    this.version(2).stores({
+      user:          'id',
+      connections:   'id, provider, expiresAt',
+      accounts:      'id, connectionId, provider, currency',
+      transactions:  'id, accountId, date, type, category, [accountId+date]',
+      syncMeta:      'id',
+      scenarios:     'id, createdAt',
+      messages:      'id, role, createdAt, conversationId, [conversationId+createdAt]',
+      conversations: 'id, createdAt, updatedAt',
     })
   }
 }

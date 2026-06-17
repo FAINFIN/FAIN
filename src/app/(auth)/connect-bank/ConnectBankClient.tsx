@@ -64,7 +64,7 @@ export function ConnectBankClient() {
       console.error(e)
     }
     setLoadingSample(false)
-    router.push('/dashboard')
+    router.push('/ask')
   }
 
   const STARTERS = locale === 'ka'
@@ -119,8 +119,8 @@ export function ConnectBankClient() {
           ))}
         </div>
 
-        <Button onClick={() => router.push('/dashboard')} style={{ marginTop: 24 }}>
-          {locale === 'ka' ? 'დეშბორდზე გადასვლა' : 'Go to dashboard'}
+        <Button onClick={() => router.push('/ask')} style={{ marginTop: 24 }}>
+          {locale === 'ka' ? 'Fain-ზე გადასვლა' : 'Go to Fain'}
         </Button>
       </div>
     )

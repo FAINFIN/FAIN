@@ -26,14 +26,14 @@ export function LoginForm() {
 
   async function handleGoogle() {
     setLoading(true)
-    await authClient.signIn.social({ provider: 'google', callbackURL: '/dashboard' })
+    await authClient.signIn.social({ provider: 'google', callbackURL: '/ask' })
   }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     setLoading(true)
     setError('')
-    const res = await authClient.signIn.magicLink({ email, callbackURL: '/dashboard' })
+    const res = await authClient.signIn.magicLink({ email, callbackURL: '/ask' })
     setLoading(false)
     if (res.error) {
       setError(res.error.message ?? (locale === 'ka' ? 'შეცდომა' : 'Something went wrong'))

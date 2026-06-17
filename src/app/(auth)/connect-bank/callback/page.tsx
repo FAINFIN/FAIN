@@ -96,7 +96,7 @@ function CallbackInner() {
         }
 
         setStatus('done')
-        setTimeout(() => router.push('/dashboard'), 1500)
+        setTimeout(() => router.push('/ask'), 1500)
       } catch (e) {
         console.error(e)
         setStatus('error')

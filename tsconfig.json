@@ -18,5 +18,5 @@
     "paths": { "@/*": ["./src/*"] }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "**/* 2.ts", "**/* 2.tsx", "**/* 2.json", "drizzle.config 2.ts"]
 }

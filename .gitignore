@@ -6,3 +6,10 @@ out/
 .env
 *.tsbuildinfo
 next-env.d.ts
+
+# macOS Finder duplicate copies
+*\ 2.ts
+*\ 2.tsx
+*\ 2.json
+*\ 2.js
+

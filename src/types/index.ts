@@ -99,11 +99,20 @@ export interface RunwayProjection {
   projectedBalances: { month: Date; balance: number }[]
 }
 
+// ─── Conversations ────────────────────────────────────────
+export interface Conversation {
+  id: string
+  title: string
+  createdAt: Date
+  updatedAt: Date
+}
+
 // ─── AI conversation ──────────────────────────────────────
 export type MessageRole = 'user' | 'assistant'
 
 export interface ChatMessage {
   id: string
+  conversationId?: string
   role: MessageRole
   content: string
   metrics?: InlineMetric[]
