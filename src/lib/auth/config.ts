@@ -1,38 +1,18 @@
+/**
+ * Better Auth configuration — Drizzle adapter + Google OAuth + magic link
+ * + two-factor TOTP + phone/SMS (Twilio)
+ *
+ * Passkey (WebAuthn) requires a newer better-auth version; will be added later.
+ * For now biometrics are handled at the OS level via passkey prompts on supported
+ * browsers (Chrome/Safari prompt Touch ID when a passkey is stored).
+ */
 import { betterAuth } from 'better-auth'
-import { magicLink } from 'better-auth/plugins'
-
-// ── Upstash KV adapter ────────────────────────────────────────────────────
-// better-auth needs a minimal database for storing magic-link tokens (15-min TTL).
-// We use Upstash Redis directly — zero SQL, no user table, no persistent PII.
-function upstashKV() {
-  const url   = process.env.UPSTASH_REDIS_REST_URL!
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN!
-
-  async function cmd<T>(...args: (string | number)[]): Promise<T> {
-    const res = await fetch(`${url}/${args.map(encodeURIComponent).join('/')}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-    const json = await res.json() as { result: T }
-    return json.result
-  }
-
-  return {
-    // better-auth KV interface: get / set / delete
-    async get(key: string) {
-      return cmd<string | null>('GET', key)
-    },
-    async set(key: string, value: string, ttlSeconds?: number) {
-      if (ttlSeconds) {
-        await cmd('SET', key, value, 'EX', ttlSeconds)
-      } else {
-        await cmd('SET', key, value)
-      }
-    },
-    async delete(key: string) {
-      await cmd('DEL', key)
-    },
-  }
-}
+import { drizzleAdapter } from 'better-auth/adapters/drizzle'
+import { magicLink } from 'better-auth/plugins/magic-link'
+import { twoFactor } from 'better-auth/plugins/two-factor'
+import { phoneNumber } from 'better-auth/plugins/phone-number'
+import { db } from '@/lib/db/client.server'
+import * as schema from '@/lib/db/schema.server'
 
 // ── Resend magic-link email ───────────────────────────────────────────────
 async function sendMagicLinkEmail(email: string, url: string) {
@@ -62,33 +42,116 @@ async function sendMagicLinkEmail(email: string, url: string) {
   })
 }
 
+// ── SMS via Twilio ────────────────────────────────────────────────────────
+async function sendSmsOtp(phone: string, otp: string) {
+  const accountSid = process.env.TWILIO_ACCOUNT_SID
+  const authToken  = process.env.TWILIO_AUTH_TOKEN
+  const from       = process.env.TWILIO_PHONE_NUMBER
+
+  if (!accountSid || !authToken || !from) {
+    // Dev fallback — log OTP instead of throwing
+    console.log(`[DEV] SMS OTP for ${phone}: ${otp}`)
+    return
+  }
+
+  const res = await fetch(
+    `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Basic ${Buffer.from(`${accountSid}:${authToken}`).toString('base64')}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        From: from,
+        To:   phone,
+        Body: `Your Fain verification code: ${otp}. Expires in 10 minutes.`,
+      }),
+    }
+  )
+  if (!res.ok) {
+    const err = await res.text()
+    throw new Error(`Twilio error: ${err}`)
+  }
+}
+
+// ── Drizzle adapter schema map ────────────────────────────────────────────
+// Maps Better Auth's expected table names to our Drizzle schema objects
+const schemaMap = {
+  user:         schema.user,
+  session:      schema.session,
+  account:      schema.account,
+  verification: schema.verification,
+  twoFactor:    schema.twoFactor,
+}
+
 // ── Auth instance ─────────────────────────────────────────────────────────
 export const auth = betterAuth({
-  // No database adapter — sessions live in HTTP-only signed cookies only.
-  // Magic link tokens live in Upstash Redis (15-min TTL).
-  secret: process.env.BETTER_AUTH_SECRET!,
+  secret:  process.env.BETTER_AUTH_SECRET!,
   baseURL: process.env.BETTER_AUTH_URL ?? process.env.NEXT_PUBLIC_APP_URL,
+
+  // Drizzle adapter — enables sessions, accounts, and plugin tables in Postgres
+  database: drizzleAdapter(db, {
+    provider: 'pg',
+    schema:   schemaMap,
+  }),
 
   session: {
     cookieCache: { enabled: true, maxAge: 30 * 24 * 60 * 60 }, // 30 days
   },
 
+  // Email/password disabled — we use magic links + OAuth only
+  emailAndPassword: {
+    enabled: false,
+  },
+
   socialProviders: {
+    // Step 1: Google — fastest, most recognised, best UX
     google: {
       clientId:     process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     },
+
+    // Step 2: Microsoft Entra ID — covers Exchange / M365 organisations
+    // Register at https://portal.azure.com → App Registrations
+    // Redirect URI: {APP_URL}/api/auth/callback/microsoft
+    microsoft: {
+      clientId:     process.env.MICROSOFT_CLIENT_ID!,
+      clientSecret: process.env.MICROSOFT_CLIENT_SECRET!,
+      // 'common' accepts any Azure AD tenant + personal accounts;
+      // set to a specific tenant ID to restrict to one org
+      tenantId:     process.env.MICROSOFT_TENANT_ID ?? 'common',
+    },
+
+    // Step 3: Apple Sign In
+    // Register at https://developer.apple.com → Certificates, Identifiers & Profiles
+    // Redirect URI: {APP_URL}/api/auth/callback/apple
+    // Note: Apple requires a Services ID (not just App ID) + private key for JWT signing
+    apple: {
+      clientId:     process.env.APPLE_CLIENT_ID!,
+      clientSecret: process.env.APPLE_CLIENT_SECRET!, // JWT-signed; generate with generateAppleClientSecret()
+    },
   },
 
   plugins: [
+    // Magic link (email OTP — no password needed)
     magicLink({
-      sendMagicLink: async ({ email, url }: { email: string; url: string }) => sendMagicLinkEmail(email, url),
+      sendMagicLink: async ({ email, url }: { email: string; url: string }) =>
+        sendMagicLinkEmail(email, url),
       expiresIn: 15 * 60, // 15 minutes
     }),
-  ],
 
-  // Upstash KV for token storage (if env vars present; falls back to in-memory for local dev)
-  ...(process.env.UPSTASH_REDIS_REST_URL
-    ? { database: upstashKV() as any }
-    : {}),
+    // TOTP two-factor (Google Authenticator / Authy)
+    twoFactor({
+      issuer: 'Fain',
+    }),
+
+    // SMS phone verification (Twilio)
+    phoneNumber({
+      sendOTP: async ({ phoneNumber: phone, code }: { phoneNumber: string; code: string }) =>
+        sendSmsOtp(phone, code),
+      expiresIn:  10 * 60,  // 10 minutes
+      otpLength:  6,
+    }),
+  ],
 })

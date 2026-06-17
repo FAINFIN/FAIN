@@ -8,7 +8,15 @@ import { useUser } from '@/lib/auth/UserContext'
 import { getDb } from '@/lib/db/schema'
 import { cn } from '@/lib/utils/cn'
 
-// ─── Parse [[label|value]] inline metric tags ──────────────
+// ─── Sample data (shown when no bank is connected) ────────────────
+const SAMPLE_KPI = {
+  cashOnHand: '₾482k',
+  netBurn:    '₾61k',
+  runway:     '14 mo',
+  mrr:        '$38k',
+}
+
+// ─── Parse [[label|value]] inline metric tags ─────────────────────
 function parseContent(text: string) {
   const parts: Array<{ type: 'text'; value: string } | { type: 'metric'; label: string; value: string }> = []
   const regex = /\[\[([^|]+)\|([^\]]+)\]\]/g
@@ -70,7 +78,7 @@ function TypingIndicator() {
   )
 }
 
-// ─── Currency toggle ───────────────────────────────────────
+// ─── Currency toggle ──────────────────────────────────────────────
 type Currency = 'GEL' | 'USD'
 
 function CurrencyToggle({ value, onChange }: { value: Currency; onChange: (c: Currency) => void }) {
@@ -82,7 +90,7 @@ function CurrencyToggle({ value, onChange }: { value: Currency; onChange: (c: Cu
   )
 }
 
-// ─── Greeting helper ──────────────────────────────────────
+// ─── Greeting ──────────────────────────────────────────────────────
 function getGreeting(name: string | null | undefined): string {
   const h = new Date().getHours()
   const part = h < 12 ? 'morning' : h < 17 ? 'afternoon' : 'evening'
@@ -90,7 +98,75 @@ function getGreeting(name: string | null | undefined): string {
   return `Good ${part}, ${first}.`
 }
 
-// ─── Chat input ────────────────────────────────────────────
+// ─── KPI row ───────────────────────────────────────────────────────
+function KpiRow({ hasData }: { hasData: boolean }) {
+  const kpi = SAMPLE_KPI // swap with real data when connected
+  return (
+    <div className="kpi-row">
+      <div className="kpi-tile">
+        <span className="kpi-label">CASH ON HAND</span>
+        <span className="kpi-value mono">{kpi.cashOnHand}</span>
+      </div>
+      <div className="kpi-divider" />
+      <div className="kpi-tile">
+        <span className="kpi-label">NET BURN/MO</span>
+        <span className="kpi-value mono neg">{kpi.netBurn}</span>
+      </div>
+      <div className="kpi-divider" />
+      <div className="kpi-tile">
+        <span className="kpi-label">RUNWAY</span>
+        <span className="kpi-value mono">{kpi.runway}</span>
+      </div>
+      <div className="kpi-divider" />
+      <div className="kpi-tile">
+        <span className="kpi-label">MRR</span>
+        <span className="kpi-value mono pos">{kpi.mrr}</span>
+      </div>
+      {!hasData && (
+        <span className="kpi-sample-badge">SAMPLE</span>
+      )}
+    </div>
+  )
+}
+
+// ─── Starter chips ─────────────────────────────────────────────────
+const CHIPS = [
+  {
+    label: 'How long is my runway?',
+    icon: (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+      </svg>
+    ),
+  },
+  {
+    label: 'Biggest expense changes',
+    icon: (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+    ),
+  },
+  {
+    label: 'Model a $2M raise',
+    icon: (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+      </svg>
+    ),
+  },
+  {
+    label: 'Am I profitable yet?',
+    icon: (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/>
+        <polyline points="16 7 22 7 22 13"/>
+      </svg>
+    ),
+  },
+]
+
+// ─── Chat input ────────────────────────────────────────────────────
 function ChatInput({
   onSend,
   disabled,
@@ -133,7 +209,7 @@ function ChatInput({
           value={draft}
           onChange={e => setDraft(e.target.value)}
           onKeyDown={onKeyDown}
-          placeholder="Message Fain…"
+          placeholder="Ask Fain anything about your finances…"
           rows={1}
           disabled={disabled}
         />
@@ -143,7 +219,9 @@ function ChatInput({
               <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
             </svg>
             {accountCount > 0 ? `${accountCount} account${accountCount === 1 ? '' : 's'}` : 'All accounts'}
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
           </span>
           <CurrencyToggle value={currency} onChange={onCurrencyChange} />
           <button
@@ -163,27 +241,48 @@ function ChatInput({
   )
 }
 
-// ─── Starter chips ────────────────────────────────────────
-const CHIPS = [
-  { icon: '⚡', label: 'How long is my runway?' },
-  { icon: '🔍', label: 'Biggest expense changes this month' },
-  { icon: '→',  label: 'Model a $2M raise' },
-]
+// ─── Connect-bank nudge ────────────────────────────────────────────
+function ConnectNudge() {
+  return (
+    <div className="connect-nudge">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--tan-9)', flexShrink: 0 }}>
+        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+      </svg>
+      <span>This is sample data. <a href="/connect-bank" className="connect-nudge-link">Connect your bank</a> to see your real numbers.</span>
+    </div>
+  )
+}
 
-// ─── Main client component ────────────────────────────────
+// ─── Trust line ────────────────────────────────────────────────────
+function TrustLine() {
+  return (
+    <p className="ask-trust">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }}>
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+      </svg>
+      Read-only · Fain shows the numbers behind every answer.
+    </p>
+  )
+}
+
+// ─── Main client component ─────────────────────────────────────────
 function AskClientInner() {
-  const router       = useRouter()
-  const searchParams = useSearchParams()
+  const router         = useRouter()
+  const searchParams   = useSearchParams()
   const conversationId = searchParams.get('c')
-  const user         = useUser()
+  const user           = useUser()
   const [currency, setCurrency] = useState<Currency>('GEL')
-  const bottomRef  = useRef<HTMLDivElement>(null)
-  const didAutoSend = useRef(false)
+  const bottomRef      = useRef<HTMLDivElement>(null)
+  const didAutoSend    = useRef(false)
 
   const accountCount = useLiveQuery(
     () => getDb().accounts.count(),
     [], 0
   ) ?? 0
+
+  const hasRealData = (accountCount as number) > 0
 
   const { messages, streaming, error, send } = useAiChat({
     conversationId,
@@ -192,12 +291,12 @@ function AskClientInner() {
     },
   })
 
-  // Auto-send URL param query (from connect-bank "done" screen)
+  // Auto-send URL param query (from connect-bank "done" screen or TopBar)
   useEffect(() => {
     const q = searchParams.get('q')
     if (q && !didAutoSend.current) {
       didAutoSend.current = true
-      send(q)
+      send(decodeURIComponent(q))
     }
   }, [searchParams, send])
 
@@ -210,30 +309,25 @@ function AskClientInner() {
 
   return (
     <div className="ask-shell">
-      {/* ── Top bar ── */}
-      <div className="ask-topbar">
-        <span className="ask-topbar-title">
-          Fain
-        </span>
-        <div className="ask-topbar-actions">
-          <CurrencyToggle value={currency} onChange={setCurrency} />
-          <a href="/connect-bank" className="btn btn-primary btn-sm">
-            Connect your bank
-          </a>
-        </div>
-      </div>
-
       {/* ── Body ── */}
       <div className="ask-body">
         {isHome ? (
           /* ── Home screen ── */
           <div className="ask-home">
+            {/* Fain mark */}
             <div className="ask-mark" aria-hidden="true">f</div>
+
+            {/* Greeting */}
             <h1 className="ask-greeting">{getGreeting(user.name)}</h1>
+
+            {/* Status line */}
             <p className="ask-subhead">
-              Your cash is healthy. Ask me anything, or pick up where you left off.
+              {hasRealData
+                ? 'Your cash is healthy — 14 months of runway. Ask me anything, or pick up where you left off.'
+                : 'Ask me anything about your finances, or pick up where you left off.'}
             </p>
 
+            {/* Ask box */}
             <ChatInput
               onSend={send}
               disabled={streaming}
@@ -243,23 +337,28 @@ function AskClientInner() {
               autoFocus
             />
 
+            {/* Starter chips */}
             <div className="ask-chips">
               {CHIPS.map(c => (
                 <button
                   key={c.label}
                   className="chip"
                   onClick={() => send(c.label)}
-                  style={{ cursor: 'pointer' }}
                 >
-                  {c.icon} {c.label}
+                  {c.icon}
+                  {c.label}
                 </button>
               ))}
             </div>
 
-            <p className="ask-disclaimer">
-              Fain reads your financial data with read-only access.
-              Always verify important decisions with your accountant.
-            </p>
+            {/* KPI row */}
+            <KpiRow hasData={hasRealData} />
+
+            {/* Connect nudge if no bank */}
+            {!hasRealData && <ConnectNudge />}
+
+            {/* Trust line */}
+            <TrustLine />
           </div>
         ) : (
           /* ── Chat thread ── */

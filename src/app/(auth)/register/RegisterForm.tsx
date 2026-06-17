@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, FormEvent } from 'react'
-import { useRouter } from 'next/navigation'
 import { authClient } from '@/lib/auth/client'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -18,17 +17,32 @@ function GoogleIcon() {
   )
 }
 
-export function RegisterForm() {
-  const router = useRouter()
+function ShieldIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--pos)', flexShrink: 0 }}>
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+    </svg>
+  )
+}
+
+// ── Step 1: email + name → send magic link ────────────────────────
+function StepAccount({
+  onSent,
+  loading,
+  setLoading,
+}: {
+  onSent: (email: string) => void
+  loading: boolean
+  setLoading: (v: boolean) => void
+}) {
   const { t, locale } = useLocale()
-  const [email,   setEmail]   = useState('')
-  const [name,    setName]    = useState('')
-  const [sent,    setSent]    = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [error,   setError]   = useState('')
+  const [email, setEmail] = useState('')
+  const [name,  setName]  = useState('')
+  const [error, setError] = useState('')
 
   async function handleGoogle() {
     setLoading(true)
+    setError('')
     await authClient.signIn.social({ provider: 'google', callbackURL: '/connect-bank' })
   }
 
@@ -41,29 +55,12 @@ export function RegisterForm() {
     if (res.error) {
       setError(res.error.message ?? (locale === 'ka' ? 'შეცდომა' : 'Something went wrong'))
     } else {
-      setSent(true)
+      onSent(email)
     }
   }
 
-  if (sent) {
-    return (
-      <div className="form" style={{ marginTop: 26, textAlign: 'center', padding: '32px 0' }}>
-        <div style={{ fontSize: 40, marginBottom: 12 }}>📬</div>
-        <p className="lead" style={{ margin: 0 }}>
-          {locale === 'ka' ? 'შეამოწმე ელ-ფოსტა.' : 'Check your email.'}
-        </p>
-        <p className="hint" style={{ marginTop: 8 }}>
-          {locale === 'ka'
-            ? <>გამოგიგზავნეთ ბმული <strong>{email}</strong>-ზე. 15 წუთში ვადა გასდის.</>
-            : <>We sent a sign-in link to <strong>{email}</strong>. It expires in 15 minutes.</>
-          }
-        </p>
-      </div>
-    )
-  }
-
   return (
-    <div className="form" style={{ marginTop: 26 }}>
+    <>
       <Button
         variant="outline"
         onClick={handleGoogle}
@@ -107,6 +104,50 @@ export function RegisterForm() {
           <a href="#">{t.auth.privacy}</a>.
         </p>
       </form>
+    </>
+  )
+}
+
+// ── Sent state ────────────────────────────────────────────────────
+function StepSent({ email }: { email: string }) {
+  const { locale } = useLocale()
+  return (
+    <div style={{ textAlign: 'center', padding: '32px 0' }}>
+      <div style={{ fontSize: 40, marginBottom: 12 }}>📬</div>
+      <p className="lead" style={{ margin: 0 }}>
+        {locale === 'ka' ? 'შეამოწმე ელ-ფოსტა.' : 'Check your email.'}
+      </p>
+      <p className="hint" style={{ marginTop: 8 }}>
+        {locale === 'ka'
+          ? <>გამოგიგზავნეთ ბმული <strong>{email}</strong>-ზე. 15 წუთში ვადა გასდის.</>
+          : <>We sent a sign-in link to <strong>{email}</strong>. It expires in 15 minutes.</>
+        }
+      </p>
+
+      {/* Security trust pill */}
+      <div className="auth-trust" style={{ justifyContent: 'center', marginTop: 24 }}>
+        <ShieldIcon />
+        <span>Your account is secured. You'll set up 2FA after signing in.</span>
+      </div>
+    </div>
+  )
+}
+
+// ── Root component ─────────────────────────────────────────────────
+export function RegisterForm() {
+  const [step,    setStep]    = useState<'account' | 'sent'>('account')
+  const [email,   setEmail]   = useState('')
+  const [loading, setLoading] = useState(false)
+
+  if (step === 'sent') return <div className="form" style={{ marginTop: 26 }}><StepSent email={email} /></div>
+
+  return (
+    <div className="form" style={{ marginTop: 26 }}>
+      <StepAccount
+        loading={loading}
+        setLoading={setLoading}
+        onSent={(e) => { setEmail(e); setStep('sent') }}
+      />
     </div>
   )
 }

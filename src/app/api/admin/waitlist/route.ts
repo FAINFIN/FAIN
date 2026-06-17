@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db/client.server'
-import { waitlist, users } from '@/lib/db/schema.server'
+import { waitlist, user, userProfiles } from '@/lib/db/schema.server'
 import { eq } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
 
@@ -39,13 +39,27 @@ export async function POST(req: NextRequest) {
       .set({ status: 'approved', approvedAt: new Date() })
       .where(eq(waitlist.id, id))
 
-    // Create user record so they can log in
-    await db.insert(users)
+    // Pre-create the Better Auth user record so they can sign in via magic link.
+    // Better Auth requires: id, name, email, emailVerified, createdAt, updatedAt.
+    const now = new Date()
+    const userId = nanoid()
+    await db.insert(user)
       .values({
-        id:       nanoid(),
-        email:    entry[0].email,
-        name:     entry[0].name ?? null,
-        approved: true,
+        id:            userId,
+        email:         entry[0].email,
+        name:          entry[0].name ?? entry[0].email,
+        emailVerified: false,
+        createdAt:     now,
+        updatedAt:     now,
+      })
+      .onConflictDoNothing()
+
+    // Mark approved in userProfiles
+    await db.insert(userProfiles)
+      .values({
+        id:         nanoid(),
+        userId,
+        approvedAt: now,
       })
       .onConflictDoNothing()
 

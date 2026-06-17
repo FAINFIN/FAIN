@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db/client.server'
-import { bankConnections, users } from '@/lib/db/schema.server'
+import { bankConnections } from '@/lib/db/schema.server'
 import { eq } from 'drizzle-orm'
 import { auth } from '@/lib/auth/config'
 import { headers } from 'next/headers'
@@ -12,16 +12,13 @@ export async function POST(req: NextRequest) {
   const session = await auth.api.getSession({ headers: await headers() })
   if (!session) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
 
-  const { connectionId, provider } = await req.json()
+  const { connectionId, provider } = await req.json() as { connectionId: string; provider?: string }
   if (!connectionId) return NextResponse.json({ error: 'Missing connectionId' }, { status: 400 })
 
   const userId = session.user.id
-  const email  = session.user.email
 
-  // Upsert user in our DB
-  await db.insert(users)
-    .values({ id: userId, email, name: session.user.name ?? null, approved: true })
-    .onConflictDoNothing()
+  // Better Auth already owns the `user` table — no insert needed here.
+  // Just register the bank connection.
 
   // Check if connection already registered
   const existing = await db.select()

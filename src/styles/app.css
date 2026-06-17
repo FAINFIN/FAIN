@@ -706,3 +706,288 @@
   .ask-input-area { padding: 10px 16px; }
   .ask-chips { gap: 6px; }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   APP TOP BAR
+   ═══════════════════════════════════════════════════════════ */
+
+.app-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 22px;
+  height: 54px;
+  background: var(--surface-primary);
+  border-bottom: 1px solid var(--border-subtle);
+  flex: 0 0 auto;
+}
+
+/* Company selector */
+.topbar-company {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px;
+  border-radius: var(--r-control);
+  border: 1px solid var(--border-subtle);
+  background: var(--stone-2);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-high);
+  cursor: pointer;
+  transition: background var(--t-fast);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.topbar-company:hover { background: var(--stone-3); }
+.topbar-company-name { max-width: 160px; overflow: hidden; text-overflow: ellipsis; }
+
+/* Global ask bar */
+.topbar-ask {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--surface-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-control);
+  padding: 7px 14px;
+  cursor: text;
+  transition: border-color var(--t-fast), box-shadow var(--t-fast);
+  min-width: 0;
+}
+.topbar-ask:focus-within {
+  border-color: var(--tan-9);
+  box-shadow: 0 0 0 3px var(--tan-soft);
+}
+.topbar-ask-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: var(--font-ui);
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--text-high);
+  min-width: 0;
+}
+.topbar-ask-input::placeholder {
+  color: var(--text-low);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+}
+.topbar-ask-shortcut {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-primary);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-low);
+  font-family: var(--font-num);
+  flex-shrink: 0;
+}
+
+/* Right cluster */
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+/* User avatar in top bar */
+.topbar-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--tan-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 12.5px;
+  color: var(--tan-11);
+  cursor: pointer;
+  flex-shrink: 0;
+  user-select: none;
+  transition: opacity var(--t-fast);
+}
+.topbar-avatar:hover { opacity: 0.85; }
+
+/* ── App shell: the content area stacks top-bar + main ── */
+.app-shell-content {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  min-width: 0;
+}
+
+/* ── Ask shell: remove old internal topbar since TopBar is in layout ── */
+.ask-shell {
+  display: flex;
+  flex-direction: column;
+  /* fill the content area below the global top bar */
+  flex: 1;
+  min-height: 0;
+  background: var(--surface-secondary);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SIDEBAR NAV (nav-based, replacing chat-first)
+   ═══════════════════════════════════════════════════════════ */
+
+/* Conversation links */
+.sidebar-conv-link:hover {
+  background: var(--stone-3) !important;
+  color: var(--text-high) !important;
+}
+
+/* Legacy connection classes — kept for backward compat */
+.sidebar-connections { padding: 0 8px 10px; border-top: 1px solid var(--border-subtle); }
+.sidebar-conn-row    { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 8px; font-size: 12.5px; font-weight: 600; color: var(--text-mid); letter-spacing: 0.02em; }
+.sidebar-conn-name   { flex: 1; min-width: 0; }
+.sidebar-conn-live   { font-size: 10px; font-weight: 700; letter-spacing: 0.06em; color: var(--pos); text-transform: uppercase; }
+
+/* ═══════════════════════════════════════════════════════════
+   KPI ROW — overview home page
+   ═══════════════════════════════════════════════════════════ */
+
+.kpi-row {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background: var(--surface-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-card);
+  overflow: hidden;
+  margin-top: 24px;
+  width: 100%;
+  max-width: 620px;
+  position: relative;
+}
+
+.kpi-tile {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 14px 12px;
+  text-align: center;
+  min-width: 0;
+}
+
+.kpi-label {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text-low);
+  white-space: nowrap;
+}
+
+.kpi-value {
+  font-family: var(--font-num);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-high);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.kpi-value.pos { color: var(--pos); }
+.kpi-value.neg { color: var(--text-high); } /* burn is info, not alarming */
+
+.kpi-divider {
+  width: 1px;
+  height: 36px;
+  background: var(--border-subtle);
+  flex-shrink: 0;
+}
+
+.kpi-sample-badge {
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--tan-11);
+  background: var(--tan-soft);
+  padding: 3px 8px;
+  border-radius: 0 var(--r-card) 0 8px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CONNECT NUDGE + TRUST LINE
+   ═══════════════════════════════════════════════════════════ */
+
+.connect-nudge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 10px 16px;
+  background: color-mix(in oklch, var(--tan-9) 7%, transparent);
+  border: 1px solid color-mix(in oklch, var(--tan-9) 25%, transparent);
+  border-radius: 10px;
+  font-size: 13px;
+  color: var(--text-mid);
+  max-width: 620px;
+  text-align: left;
+}
+.connect-nudge-link {
+  color: var(--tan-11);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.connect-nudge-link:hover { color: var(--tan-9); }
+
+.ask-trust {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  color: var(--text-low);
+  margin-top: 16px;
+  line-height: 1.5;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   AUTH FORMS — trust line + extra polish
+   ═══════════════════════════════════════════════════════════ */
+
+.auth-trust {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 18px;
+  padding: 10px 14px;
+  background: var(--surface-secondary);
+  border-radius: 10px;
+  border: 1px solid var(--border-subtle);
+  font-size: 12px;
+  color: var(--text-low);
+  line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+  .app-topbar { padding: 0 14px; height: 50px; }
+  .topbar-company-name { display: none; }
+  .topbar-ask-shortcut { display: none; }
+  .kpi-row { border-radius: var(--r-control); }
+  .kpi-value { font-size: 15px; }
+  .kpi-label { font-size: 8.5px; }
+}

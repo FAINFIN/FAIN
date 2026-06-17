@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db/client.server'
-import { users, bankConnections } from '@/lib/db/schema.server'
+import { user, bankConnections } from '@/lib/db/schema.server'
 import { eq } from 'drizzle-orm'
 
 export const dynamic = 'force-dynamic'
@@ -13,7 +13,7 @@ function checkAdmin(req: NextRequest) {
 export async function GET(req: NextRequest) {
   if (!checkAdmin(req)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-  const allUsers = await db.select().from(users).orderBy(users.createdAt)
+  const allUsers = await db.select().from(user).orderBy(user.createdAt)
 
   const result = await Promise.all(
     allUsers.map(async (u) => {
