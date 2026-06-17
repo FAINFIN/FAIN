@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, FormEvent } from 'react'
+import { useRouter } from 'next/navigation'
 import { authClient } from '@/lib/auth/client'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -124,6 +125,7 @@ type Step = 'main' | '2fa' | 'sms' | 'sent'
 
 export function LoginForm() {
   const { t, locale } = useLocale()
+  const router = useRouter()
   const [step,    setStep]    = useState<Step>('main')
   const [email,   setEmail]   = useState('')
   const [loading, setLoading] = useState(false)
@@ -156,9 +158,10 @@ export function LoginForm() {
   // ── 2FA verify ─────────────────────────────────────────────────────────────
   async function handleTwoFactorVerify(code: string) {
     setLoading(true)
-    const res = await authClient.twoFactor.verifyTotp({ code, callbackURL: '/ask' })
+    const res = await authClient.twoFactor.verifyTotp({ code })
     setLoading(false)
     if (res?.error) throw new Error(res.error.message)
+    router.push('/ask')
   }
 
   // ─── Sent step ─────────────────────────────────────────────────────────────
