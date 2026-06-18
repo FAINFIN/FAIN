@@ -41,12 +41,12 @@ export const STRINGS = {
     // Ask
     ask: {
       title:        'Ask Fain',
-      placeholder:  'Ask about your finances…',
+      placeholder:  'Ask Fain anything about your finances…',
       chips: [
         'How long is my runway?',
-        "What's my biggest expense?",
-        'Am I profitable?',
-        'What happened last month?',
+        'Biggest expense changes',
+        'Model a $2M raise',
+        'Am I profitable yet?',
       ],
     },
     // Auth / onboarding
@@ -107,12 +107,12 @@ export const STRINGS = {
     },
     ask: {
       title:        'ჰკითხე Fain-ს',
-      placeholder:  'დასვი შეკითხვა ფინანსებზე…',
+      placeholder:  'ჰკითხე Fain-ს ფინანსებზე…',
       chips: [
         'რამდენ ხანს გავუძლებ?',
-        'რა არის ჩემი მთავარი ხარჯი?',
+        'ყველაზე დიდი ხარჯი',
+        '₾5M ინვესტიციის მოდელი',
         'მომგებიანი ვარ?',
-        'გასულ თვეში რა მოხდა?',
       ],
     },
     auth: {

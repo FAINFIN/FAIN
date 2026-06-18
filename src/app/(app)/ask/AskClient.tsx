@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useRef, useEffect, FormEvent, Suspense } from 'react'
+import { useState, useRef, useEffect, Suspense, type ReactNode } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useAiChat, type Message } from '@/lib/ai/useAiChat'
 import { useUser } from '@/lib/auth/UserContext'
+import { useLocale } from '@/lib/i18n/LocaleContext'
 import { getDb } from '@/lib/db/schema'
 import { cn } from '@/lib/utils/cn'
 
@@ -16,20 +17,24 @@ const SAMPLE_KPI = {
   mrr:        '$38k',
 }
 
-// ─── Parse [[label|value]] inline metric tags ─────────────────────
-function parseContent(text: string) {
-  const parts: Array<{ type: 'text'; value: string } | { type: 'metric'; label: string; value: string }> = []
-  const regex = /\[\[([^|]+)\|([^\]]+)\]\]/g
-  let last = 0, m
-  while ((m = regex.exec(text)) !== null) {
-    if (m.index > last) parts.push({ type: 'text', value: text.slice(last, m.index) })
-    parts.push({ type: 'metric', label: m[1]!, value: m[2]! })
-    last = m.index + m[0].length
-  }
-  if (last < text.length) parts.push({ type: 'text', value: text.slice(last) })
-  return parts
-}
+// ─── SVG icons for the suggestion chips ──────────────────────────
+const CHIP_ICONS = [
+  <svg key="a" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+  </svg>,
+  <svg key="b" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+  </svg>,
+  <svg key="c" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+  </svg>,
+  <svg key="d" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/>
+    <polyline points="16 7 22 7 22 13"/>
+  </svg>,
+]
 
+// ─── Inline metric [[label|value]] ───────────────────────────────
 function InlineMetric({ label, value }: { label: string; value: string }) {
   return (
     <span style={{
@@ -44,24 +49,174 @@ function InlineMetric({ label, value }: { label: string; value: string }) {
   )
 }
 
+// ─── Inline text parser: bold, italic, code, [[metric|value]] ────
+function renderInline(text: string, baseKey: string): ReactNode[] {
+  // Pattern matches [[label|value]], **bold**, *italic*, `code`
+  const pattern = /(\[\[([^|]+)\|([^\]]+)\]\])|(\*\*(.+?)\*\*)|(\*(.+?)\*)|(`([^`]+)`)/g
+  const parts: ReactNode[] = []
+  let last = 0
+  let m: RegExpExecArray | null
+  let idx = 0
+
+  while ((m = pattern.exec(text)) !== null) {
+    if (m.index > last) parts.push(<span key={`${baseKey}-t${idx++}`}>{text.slice(last, m.index)}</span>)
+
+    if (m[1]) { // [[label|value]]
+      parts.push(<InlineMetric key={`${baseKey}-m${idx++}`} label={m[2]!} value={m[3]!} />)
+    } else if (m[4]) { // **bold**
+      parts.push(<strong key={`${baseKey}-b${idx++}`}>{m[5]}</strong>)
+    } else if (m[6]) { // *italic*
+      parts.push(<em key={`${baseKey}-i${idx++}`}>{m[7]}</em>)
+    } else if (m[8]) { // `code`
+      parts.push(
+        <code key={`${baseKey}-c${idx++}`} style={{
+          fontFamily: 'var(--font-num)', background: 'var(--stone-2)',
+          borderRadius: 4, padding: '1px 5px', fontSize: '0.88em',
+          border: '1px solid var(--border-subtle)',
+        }}>
+          {m[9]}
+        </code>
+      )
+    }
+    last = m.index + m[0].length
+  }
+  if (last < text.length) parts.push(<span key={`${baseKey}-t${idx++}`}>{text.slice(last)}</span>)
+  return parts
+}
+
+// ─── Block markdown renderer ──────────────────────────────────────
+// Handles: paragraphs, bullet lists, numbered lists, ### headers, code blocks
+function renderContent(text: string): ReactNode {
+  const lines = text.split('\n')
+  const blocks: ReactNode[] = []
+  let blockKey = 0
+  let i = 0
+
+  // Detect fenced code blocks
+  const CODE_FENCE = /^```/
+
+  while (i < lines.length) {
+    const line = lines[i]!
+
+    // Skip blank lines
+    if (!line.trim()) { i++; continue }
+
+    // Fenced code block
+    if (CODE_FENCE.test(line)) {
+      const codeLines: string[] = []
+      i++
+      while (i < lines.length && !CODE_FENCE.test(lines[i]!)) {
+        codeLines.push(lines[i]!)
+        i++
+      }
+      i++ // consume closing ```
+      blocks.push(
+        <pre key={blockKey++} style={{
+          background: 'var(--stone-2)', border: '1px solid var(--border-subtle)',
+          borderRadius: 8, padding: '10px 14px', margin: '8px 0',
+          fontFamily: 'var(--font-num)', fontSize: '0.85em',
+          overflowX: 'auto', whiteSpace: 'pre',
+        }}>
+          <code>{codeLines.join('\n')}</code>
+        </pre>
+      )
+      continue
+    }
+
+    // Heading (### or ## or #)
+    if (/^#{1,3}\s/.test(line)) {
+      const level = line.match(/^(#{1,3})/)?.[1]?.length ?? 2
+      const content = line.replace(/^#{1,3}\s+/, '')
+      const Tag = (['h3', 'h4', 'h5'] as const)[level - 1] ?? 'h5'
+      blocks.push(
+        <Tag key={blockKey++} style={{
+          margin: '10px 0 4px', fontWeight: 700,
+          fontSize: level === 1 ? '1.1em' : '1em',
+        }}>
+          {renderInline(content, `hd-${blockKey}`)}
+        </Tag>
+      )
+      i++
+      continue
+    }
+
+    // Bullet list
+    if (/^[-*•]\s/.test(line)) {
+      const items: ReactNode[] = []
+      let listKey = 0
+      while (i < lines.length && /^[-*•]\s/.test(lines[i]!)) {
+        const content = lines[i]!.replace(/^[-*•]\s+/, '')
+        items.push(
+          <li key={listKey++} style={{ marginBottom: 2 }}>
+            {renderInline(content, `ul-${blockKey}-${listKey}`)}
+          </li>
+        )
+        i++
+      }
+      blocks.push(
+        <ul key={blockKey++} style={{ margin: '4px 0', paddingLeft: 20, listStyleType: 'disc' }}>
+          {items}
+        </ul>
+      )
+      continue
+    }
+
+    // Numbered list
+    if (/^\d+[.)]\s/.test(line)) {
+      const items: ReactNode[] = []
+      let listKey = 0
+      while (i < lines.length && /^\d+[.)]\s/.test(lines[i]!)) {
+        const content = lines[i]!.replace(/^\d+[.)]\s+/, '')
+        items.push(
+          <li key={listKey++} style={{ marginBottom: 2 }}>
+            {renderInline(content, `ol-${blockKey}-${listKey}`)}
+          </li>
+        )
+        i++
+      }
+      blocks.push(
+        <ol key={blockKey++} style={{ margin: '4px 0', paddingLeft: 20 }}>
+          {items}
+        </ol>
+      )
+      continue
+    }
+
+    // Paragraph: collect consecutive non-special lines
+    const paraLines: string[] = []
+    while (
+      i < lines.length &&
+      lines[i]!.trim() &&
+      !CODE_FENCE.test(lines[i]!) &&
+      !/^#{1,3}\s/.test(lines[i]!) &&
+      !/^[-*•]\s/.test(lines[i]!) &&
+      !/^\d+[.)]\s/.test(lines[i]!)
+    ) {
+      paraLines.push(lines[i]!)
+      i++
+    }
+    if (paraLines.length) {
+      blocks.push(
+        <p key={blockKey++} style={{ margin: '4px 0', lineHeight: 1.6 }}>
+          {renderInline(paraLines.join(' '), `p-${blockKey}`)}
+        </p>
+      )
+    }
+  }
+
+  return <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>{blocks}</div>
+}
+
+// ─── Message bubble ───────────────────────────────────────────────
 function MessageBubble({ msg }: { msg: Message }) {
   const isUser = msg.role === 'user'
-  const parts  = isUser ? null : parseContent(msg.content)
   return (
     <div className={cn('chat-row', isUser && 'chat-row--user')}>
       {!isUser && (
         <div className="mark" style={{ width: 30, height: 30, borderRadius: 9, fontSize: 15, flex: '0 0 auto', marginTop: 2 }}>f</div>
       )}
       <div className={cn('chat-bubble', isUser ? 'chat-bubble--user' : 'chat-bubble--ai')}>
-        {isUser ? msg.content : (
-          <>
-            {parts!.map((p, i) =>
-              p.type === 'text'
-                ? <span key={i}>{p.value}</span>
-                : <InlineMetric key={i} label={p.label} value={p.value} />
-            )}
-          </>
-        )}
+        {isUser ? msg.content : renderContent(msg.content)}
       </div>
     </div>
   )
@@ -91,10 +246,14 @@ function CurrencyToggle({ value, onChange }: { value: Currency; onChange: (c: Cu
 }
 
 // ─── Greeting ──────────────────────────────────────────────────────
-function getGreeting(name: string | null | undefined): string {
+function getGreeting(name: string | null | undefined, locale: 'en' | 'ka'): string {
   const h = new Date().getHours()
+  const first = name?.split(' ')[0] ?? (locale === 'ka' ? 'გამარჯობა' : 'there')
+  if (locale === 'ka') {
+    const part = h < 12 ? 'დილა მშვიდობისა' : h < 17 ? 'შუადღე მშვიდობისა' : 'საღამო მშვიდობისა'
+    return `${part}, ${first}.`
+  }
   const part = h < 12 ? 'morning' : h < 17 ? 'afternoon' : 'evening'
-  const first = name?.split(' ')[0] ?? 'there'
   return `Good ${part}, ${first}.`
 }
 
@@ -105,7 +264,7 @@ function fmtGel(n: number): string {
   return `₾${Math.round(n)}`
 }
 
-function KpiRow({ hasData }: { hasData: boolean }) {
+function KpiRow({ hasData, locale }: { hasData: boolean; locale: 'en' | 'ka' }) {
   const live = useLiveQuery(async () => {
     if (!hasData) return null
     const db       = getDb()
@@ -128,23 +287,23 @@ function KpiRow({ hasData }: { hasData: boolean }) {
   }, [hasData])
 
   const kpi = hasData && live
-    ? { cashOnHand: fmtGel(live.cash), netBurn: fmtGel(live.avgBurn), runway: `${live.runway} mo`, mrr: fmtGel(live.avgMrr) }
+    ? { cashOnHand: fmtGel(live.cash), netBurn: fmtGel(live.avgBurn), runway: `${live.runway} ${locale === 'ka' ? 'თვე' : 'mo'}`, mrr: fmtGel(live.avgMrr) }
     : SAMPLE_KPI
 
   return (
     <div className="kpi-row">
       <div className="kpi-tile">
-        <span className="kpi-label">CASH ON HAND</span>
+        <span className="kpi-label">{locale === 'ka' ? 'ნაღდი ფული' : 'CASH ON HAND'}</span>
         <span className="kpi-value mono">{kpi.cashOnHand}</span>
       </div>
       <div className="kpi-divider" />
       <div className="kpi-tile">
-        <span className="kpi-label">NET BURN/MO</span>
+        <span className="kpi-label">{locale === 'ka' ? 'თვიური ხარჯი' : 'NET BURN/MO'}</span>
         <span className="kpi-value mono neg">{kpi.netBurn}</span>
       </div>
       <div className="kpi-divider" />
       <div className="kpi-tile">
-        <span className="kpi-label">RUNWAY</span>
+        <span className="kpi-label">{locale === 'ka' ? 'ფინ. გამძლეობა' : 'RUNWAY'}</span>
         <span className="kpi-value mono">{kpi.runway}</span>
       </div>
       <div className="kpi-divider" />
@@ -159,43 +318,6 @@ function KpiRow({ hasData }: { hasData: boolean }) {
   )
 }
 
-// ─── Starter chips ─────────────────────────────────────────────────
-const CHIPS = [
-  {
-    label: 'How long is my runway?',
-    icon: (
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
-      </svg>
-    ),
-  },
-  {
-    label: 'Biggest expense changes',
-    icon: (
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-      </svg>
-    ),
-  },
-  {
-    label: 'Model a $2M raise',
-    icon: (
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-      </svg>
-    ),
-  },
-  {
-    label: 'Am I profitable yet?',
-    icon: (
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/>
-        <polyline points="16 7 22 7 22 13"/>
-      </svg>
-    ),
-  },
-]
-
 // ─── Chat input ────────────────────────────────────────────────────
 function ChatInput({
   onSend,
@@ -203,6 +325,7 @@ function ChatInput({
   currency,
   onCurrencyChange,
   accountCount,
+  placeholder,
   autoFocus,
 }: {
   onSend: (text: string) => void
@@ -210,6 +333,7 @@ function ChatInput({
   currency: Currency
   onCurrencyChange: (c: Currency) => void
   accountCount: number
+  placeholder: string
   autoFocus?: boolean
 }) {
   const [draft, setDraft] = useState('')
@@ -239,7 +363,7 @@ function ChatInput({
           value={draft}
           onChange={e => setDraft(e.target.value)}
           onKeyDown={onKeyDown}
-          placeholder="Ask Fain anything about your finances…"
+          placeholder={placeholder}
           rows={1}
           disabled={disabled}
         />
@@ -272,27 +396,35 @@ function ChatInput({
 }
 
 // ─── Connect-bank nudge ────────────────────────────────────────────
-function ConnectNudge() {
+function ConnectNudge({ locale }: { locale: 'en' | 'ka' }) {
   return (
     <div className="connect-nudge">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--tan-9)', flexShrink: 0 }}>
         <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
         <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
       </svg>
-      <span>This is sample data. <a href="/connect-bank" className="connect-nudge-link">Connect your bank</a> to see your real numbers.</span>
+      <span>
+        {locale === 'ka'
+          ? <>ეს სადემო მონაცემია. <a href="/connect-bank" className="connect-nudge-link">დაუკავშირე ბანკი</a> ნამდვილი ციფრებისთვის.</>
+          : <>This is sample data. <a href="/connect-bank" className="connect-nudge-link">Connect your bank</a> to see your real numbers.</>
+        }
+      </span>
     </div>
   )
 }
 
 // ─── Trust line ────────────────────────────────────────────────────
-function TrustLine() {
+function TrustLine({ locale }: { locale: 'en' | 'ka' }) {
   return (
     <p className="ask-trust">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }}>
         <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
         <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
       </svg>
-      Read-only · Fain shows the numbers behind every answer.
+      {locale === 'ka'
+        ? 'მხოლოდ წაკითხვა · Fain ვერ ახდენს გადარიცხვას · მონაცემები ბრაუზერშია'
+        : 'Read-only · Fain can never move money · data stays in your browser'
+      }
     </p>
   )
 }
@@ -303,6 +435,7 @@ function AskClientInner() {
   const searchParams   = useSearchParams()
   const conversationId = searchParams.get('c')
   const user           = useUser()
+  const { locale, t }  = useLocale()
   const [currency, setCurrency] = useState<Currency>('GEL')
   const bottomRef      = useRef<HTMLDivElement>(null)
   const didAutoSend    = useRef(false)
@@ -337,6 +470,9 @@ function AskClientInner() {
 
   const isHome = messages.length === 0 && !streaming
 
+  // Locale-aware chip labels paired with icons
+  const chips = t.ask.chips.map((label, i) => ({ label, icon: CHIP_ICONS[i % CHIP_ICONS.length] }))
+
   return (
     <div className="ask-shell">
       {/* ── Body ── */}
@@ -348,13 +484,13 @@ function AskClientInner() {
             <div className="ask-mark" aria-hidden="true">f</div>
 
             {/* Greeting */}
-            <h1 className="ask-greeting">{getGreeting(user.name)}</h1>
+            <h1 className="ask-greeting">{getGreeting(user.name, locale)}</h1>
 
             {/* Status line */}
             <p className="ask-subhead">
               {hasRealData
-                ? 'Your accounts are connected. Ask me anything, or pick up where you left off.'
-                : 'Ask me anything about your finances, or pick up where you left off.'}
+                ? (locale === 'ka' ? 'ანგარიშები დაკავშირებულია. დასვი შეკითხვა.' : 'Your accounts are connected. Ask me anything, or pick up where you left off.')
+                : (locale === 'ka' ? 'ჰკითხე ფინანსებზე, ან გააგრძელე იქიდან, სადაც გაჩერდი.' : 'Ask me anything about your finances, or pick up where you left off.')}
             </p>
 
             {/* Ask box */}
@@ -364,12 +500,13 @@ function AskClientInner() {
               currency={currency}
               onCurrencyChange={setCurrency}
               accountCount={accountCount as number}
+              placeholder={t.ask.placeholder}
               autoFocus
             />
 
             {/* Starter chips */}
             <div className="ask-chips">
-              {CHIPS.map(c => (
+              {chips.map(c => (
                 <button
                   key={c.label}
                   className="chip"
@@ -382,13 +519,13 @@ function AskClientInner() {
             </div>
 
             {/* KPI row */}
-            <KpiRow hasData={hasRealData} />
+            <KpiRow hasData={hasRealData} locale={locale} />
 
             {/* Connect nudge if no bank */}
-            {!hasRealData && <ConnectNudge />}
+            {!hasRealData && <ConnectNudge locale={locale} />}
 
             {/* Trust line */}
-            <TrustLine />
+            <TrustLine locale={locale} />
           </div>
         ) : (
           /* ── Chat thread ── */
@@ -397,7 +534,7 @@ function AskClientInner() {
             {streaming && <TypingIndicator />}
             {error && (
               <div style={{ textAlign: 'center', padding: '10px 0', color: 'var(--neg)', fontSize: 13 }}>
-                Something went wrong — try again.
+                {locale === 'ka' ? 'შეცდომა — სცადე ხელახლა.' : 'Something went wrong — try again.'}
               </div>
             )}
             <div ref={bottomRef} />
@@ -414,6 +551,7 @@ function AskClientInner() {
             currency={currency}
             onCurrencyChange={setCurrency}
             accountCount={accountCount as number}
+            placeholder={t.ask.placeholder}
           />
         </div>
       )}
