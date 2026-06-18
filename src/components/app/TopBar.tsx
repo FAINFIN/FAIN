@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils/cn'
+import { useLocale } from '@/lib/i18n/LocaleContext'
 
 interface TopBarProps {
   user: { name?: string | null; email: string }
@@ -39,12 +40,16 @@ function SearchIcon() {
 
 export function TopBar({ user }: TopBarProps) {
   const router = useRouter()
+  const { locale } = useLocale()
   const [currency, setCurrency] = useState<Currency>('GEL')
   const [query, setQuery] = useState('')
 
   const initials = user.name
     ? user.name.split(' ').map(w => w[0]?.toUpperCase() ?? '').join('').slice(0, 2)
     : (user.email[0]?.toUpperCase() ?? '?')
+
+  // Derive a display name for the workspace pill
+  const workspaceName = user.name ?? user.email.split('@')[0]
 
   function handleAskSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -60,10 +65,10 @@ export function TopBar({ user }: TopBarProps) {
 
   return (
     <header className="app-topbar">
-      {/* ── Company selector ── */}
+      {/* ── Workspace pill ── */}
       <button className="topbar-company" type="button">
         <BuildingIcon />
-        <span className="topbar-company-name">Acme Robotics</span>
+        <span className="topbar-company-name">{workspaceName}</span>
         <ChevronDown />
       </button>
 
@@ -76,9 +81,9 @@ export function TopBar({ user }: TopBarProps) {
           value={query}
           onChange={e => setQuery(e.target.value)}
           onKeyDown={handleAskKeyDown}
-          placeholder="ASK FAIN ANYTHING…"
+          placeholder={locale === 'ka' ? 'ჰკითხე Fain-ს…' : 'ASK FAIN ANYTHING…'}
           autoComplete="off"
-          aria-label="Ask Fain"
+          aria-label={locale === 'ka' ? 'ჰკითხე Fain-ს' : 'Ask Fain'}
         />
         <span className="topbar-ask-shortcut">/</span>
       </form>
