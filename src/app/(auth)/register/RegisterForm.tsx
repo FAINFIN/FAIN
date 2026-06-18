@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, FormEvent, useEffect } from 'react'
+import { useState, FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { authClient } from '@/lib/auth/client'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
+import { useLocale } from '@/lib/i18n/LocaleContext'
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 
@@ -48,15 +49,6 @@ function CheckIcon({ ok }: { ok: boolean }) {
   )
 }
 
-// ─── Password strength rules ──────────────────────────────────────────────────
-
-const rules = [
-  { label: '8+ characters',      test: (p: string) => p.length >= 8 },
-  { label: 'Number',             test: (p: string) => /\d/.test(p) },
-  { label: 'Uppercase letter',   test: (p: string) => /[A-Z]/.test(p) },
-  { label: 'Special character',  test: (p: string) => /[^A-Za-z0-9]/.test(p) },
-]
-
 // ─── Step 1: Create account ───────────────────────────────────────────────────
 
 function StepCreate({
@@ -69,6 +61,17 @@ function StepCreate({
   setLoading: (v: boolean) => void
 }) {
   const router = useRouter()
+  const { t } = useLocale()
+  const a = t.auth
+
+  // Password rules wired to translations
+  const rules = [
+    { label: a.rule8chars,    test: (p: string) => p.length >= 8 },
+    { label: a.ruleNumber,    test: (p: string) => /\d/.test(p) },
+    { label: a.ruleUpper,     test: (p: string) => /[A-Z]/.test(p) },
+    { label: a.ruleSpecial,   test: (p: string) => /[^A-Za-z0-9]/.test(p) },
+  ]
+
   const [name,     setName]     = useState('')
   const [email,    setEmail]    = useState('')
   const [password, setPassword] = useState('')
@@ -87,23 +90,17 @@ function StepCreate({
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
-    if (!passOk) { setError('Please meet all password requirements.'); return }
+    if (!passOk) { setError(a.errPasswordReqs); return }
     setLoading(true)
     setProvider('email')
     setError('')
 
-    const res = await authClient.signUp.email({
-      name,
-      email,
-      password,
-      callbackURL: '/onboarding',
-    })
+    const res = await authClient.signUp.email({ name, email, password, callbackURL: '/onboarding' })
     setLoading(false)
 
     if (res.error) {
       setError(res.error.message ?? 'Something went wrong. Please try again.')
     } else {
-      // Email verification required — move to OTP step
       onVerify(email)
     }
   }
@@ -122,7 +119,7 @@ function StepCreate({
           type="button"
         >
           <GoogleIcon />
-          Continue with Google
+          {a.continueGoogle}
         </Button>
 
         <Button
@@ -134,16 +131,16 @@ function StepCreate({
           type="button"
         >
           <MicrosoftIcon />
-          Continue with Microsoft
+          {a.continueMs}
         </Button>
       </div>
 
-      <div className="or">or with email</div>
+      <div className="or">{a.orWithEmail}</div>
 
       {/* ── Email + password ── */}
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         <Input
-          label="Full name"
+          label={a.fullName}
           type="text"
           value={name}
           onChange={e => setName(e.target.value)}
@@ -152,7 +149,7 @@ function StepCreate({
           required
         />
         <Input
-          label="Work email"
+          label={a.workEmail}
           type="email"
           value={email}
           onChange={e => setEmail(e.target.value)}
@@ -162,11 +159,11 @@ function StepCreate({
         />
         <div>
           <Input
-            label="Password"
+            label={a.password}
             type={showPw ? 'text' : 'password'}
             value={password}
             onChange={e => setPassword(e.target.value)}
-            placeholder="Create a strong password"
+            placeholder={a.createPassword}
             autoComplete="new-password"
             required
           />
@@ -186,7 +183,7 @@ function StepCreate({
             onClick={() => setShowPw(v => !v)}
             style={{ marginTop: 6, fontSize: 12, color: 'var(--text-low)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
           >
-            {showPw ? 'Hide password' : 'Show password'}
+            {showPw ? a.hidePassword : a.showPassword}
           </button>
         </div>
 
@@ -200,31 +197,32 @@ function StepCreate({
           disabled={loading && provider !== 'email'}
           style={{ width: '100%' }}
         >
-          Create account
+          {a.createAccountBtn}
         </Button>
 
         <p className="legal">
-          By continuing you agree to our{' '}
-          <a href="/terms">Terms of Service</a> and{' '}
-          <a href="/privacy">Privacy Policy</a>.
+          {a.legalPrefix}
+          <a href="/terms">{a.termsOfService}</a>
+          {a.and}
+          <a href="/privacy">{a.privacy}</a>.
         </p>
       </form>
 
       {/* ── Trust line ── */}
       <div className="auth-trust">
         <LockIcon />
-        <span>Protected with 2FA and end-to-end encryption. We never store bank credentials.</span>
+        <span>{a.trustLine}</span>
       </div>
 
       {/* ── Already have an account ── */}
       <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--text-low)', margin: '4px 0 0' }}>
-        Already have an account?{' '}
+        {a.haveAccount}{' '}
         <button
           type="button"
           onClick={() => router.push('/login')}
           style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--tan-11)', fontWeight: 600, padding: 0, fontSize: 'inherit' }}
         >
-          Sign in
+          {a.signinBtn}
         </button>
       </p>
     </div>
@@ -234,8 +232,10 @@ function StepCreate({
 // ─── Step 2: Verify email ─────────────────────────────────────────────────────
 
 function StepVerify({ email, onBack }: { email: string; onBack: () => void }) {
-  const [resent,   setResent]   = useState(false)
-  const [loading,  setLoading]  = useState(false)
+  const { t } = useLocale()
+  const a = t.auth
+  const [resent,  setResent]  = useState(false)
+  const [loading, setLoading] = useState(false)
 
   async function handleResend() {
     setLoading(true)
@@ -250,14 +250,13 @@ function StepVerify({ email, onBack }: { email: string; onBack: () => void }) {
       <div style={{ textAlign: 'center', padding: '16px 0 24px' }}>
         <div style={{ fontSize: 42, marginBottom: 14 }}>📬</div>
         <p className="lead" style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 600 }}>
-          Check your email
+          {a.checkEmail}
         </p>
         <p className="hint" style={{ margin: 0 }}>
-          We sent a verification link to <strong>{email}</strong>.
-          Click the link to activate your account.
+          {a.checkEmailHint(email)}
         </p>
         <p className="hint" style={{ marginTop: 6, fontSize: 12 }}>
-          Link expires in 1 hour. Check your spam folder if it doesn't arrive.
+          {a.checkEmailExpiry}
         </p>
       </div>
 
@@ -271,7 +270,7 @@ function StepVerify({ email, onBack }: { email: string; onBack: () => void }) {
           style={{ width: '100%' }}
           type="button"
         >
-          {resent ? '✓ Link resent' : 'Resend verification link'}
+          {resent ? a.resent : a.resend}
         </Button>
 
         <button
@@ -279,7 +278,7 @@ function StepVerify({ email, onBack }: { email: string; onBack: () => void }) {
           onClick={onBack}
           style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-low)', fontSize: 13, padding: '4px 0' }}
         >
-          ← Use a different email
+          {a.useDifferentEmail}
         </button>
       </div>
     </div>
@@ -289,8 +288,8 @@ function StepVerify({ email, onBack }: { email: string; onBack: () => void }) {
 // ─── Root component ───────────────────────────────────────────────────────────
 
 export function RegisterForm() {
-  const [step,  setStep]  = useState<'create' | 'verify'>('create')
-  const [email, setEmail] = useState('')
+  const [step,    setStep]    = useState<'create' | 'verify'>('create')
+  const [email,   setEmail]   = useState('')
   const [loading, setLoading] = useState(false)
 
   if (step === 'verify') {

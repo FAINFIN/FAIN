@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { authClient } from '@/lib/auth/client'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
+import { useLocale } from '@/lib/i18n/LocaleContext'
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 
@@ -43,23 +44,22 @@ function LockIcon() {
 
 function StepWelcomeBack({
   email,
-  onContinue,
   onSwitch,
   loading,
   setLoading,
 }: {
   email: string
-  onContinue: () => void
   onSwitch: () => void
   loading: boolean
   setLoading: (v: boolean) => void
 }) {
   const router = useRouter()
+  const { t } = useLocale()
+  const a = t.auth
   const [password, setPassword] = useState('')
   const [showPw,   setShowPw]   = useState(false)
   const [error,    setError]    = useState('')
 
-  // Derive initials from email
   const initials = (email.split('@')[0] ?? email).slice(0, 2).toUpperCase()
 
   async function handleSubmit(e: FormEvent) {
@@ -69,7 +69,7 @@ function StepWelcomeBack({
     const res = await authClient.signIn.email({ email, password, callbackURL: '/ask' })
     setLoading(false)
     if (res?.error) {
-      setError(res.error.message ?? 'Incorrect password. Please try again.')
+      setError(res.error.message ?? a.errWrongPassword)
     } else {
       router.push('/ask')
     }
@@ -77,7 +77,6 @@ function StepWelcomeBack({
 
   return (
     <div className="form" style={{ marginTop: 26 }}>
-      {/* Avatar + email */}
       <div style={{ textAlign: 'center', marginBottom: 24 }}>
         <div style={{
           width: 56, height: 56, borderRadius: '50%',
@@ -88,18 +87,18 @@ function StepWelcomeBack({
         }}>
           {initials}
         </div>
-        <p style={{ margin: 0, fontWeight: 600, fontSize: 15 }}>Welcome back</p>
+        <p style={{ margin: 0, fontWeight: 600, fontSize: 15 }}>{a.welcomeBack}</p>
         <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--text-low)' }}>{email}</p>
       </div>
 
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         <div>
           <Input
-            label="Password"
+            label={a.password}
             type={showPw ? 'text' : 'password'}
             value={password}
             onChange={e => setPassword(e.target.value)}
-            placeholder="Enter your password"
+            placeholder={a.enterPassword}
             autoComplete="current-password"
             autoFocus
             required
@@ -109,14 +108,14 @@ function StepWelcomeBack({
             onClick={() => setShowPw(v => !v)}
             style={{ marginTop: 6, fontSize: 12, color: 'var(--text-low)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
           >
-            {showPw ? 'Hide' : 'Show'}
+            {showPw ? a.hide : a.show}
           </button>
         </div>
 
         {error && <p style={{ color: 'var(--neg)', fontSize: 13, margin: 0 }}>{error}</p>}
 
         <Button variant="primary" size="lg" type="submit" loading={loading} style={{ width: '100%' }}>
-          Continue
+          {a.continue}
         </Button>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
@@ -125,14 +124,14 @@ function StepWelcomeBack({
             onClick={onSwitch}
             style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-low)', padding: 0 }}
           >
-            Use another account
+            {a.useAnotherAccount}
           </button>
           <button
             type="button"
             onClick={() => router.push('/forgot-password')}
             style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--tan-11)', padding: 0, fontWeight: 500 }}
           >
-            Forgot password?
+            {a.forgotPassword}
           </button>
         </div>
       </form>
@@ -152,6 +151,8 @@ function StepSignIn({
   setLoading: (v: boolean) => void
 }) {
   const router = useRouter()
+  const { t } = useLocale()
+  const a = t.auth
   const [provider, setProvider] = useState<string | null>(null)
   const [email,    setEmail]    = useState('')
   const [password, setPassword] = useState('')
@@ -179,12 +180,11 @@ function StepSignIn({
       if (msg.toLowerCase().includes('two') || msg.toLowerCase().includes('2fa')) {
         onTwoFactor('2fa')
       } else {
-        setError(msg || 'Incorrect email or password.')
+        setError(msg || a.errCredentials)
       }
       return
     }
 
-    // Remember email for next visit
     try { localStorage.setItem('fain_last_email', email) } catch {}
     router.push('/ask')
   }
@@ -203,7 +203,7 @@ function StepSignIn({
           type="button"
         >
           <GoogleIcon />
-          Continue with Google
+          {a.continueGoogle}
         </Button>
 
         <Button
@@ -215,16 +215,16 @@ function StepSignIn({
           type="button"
         >
           <MicrosoftIcon />
-          Continue with Microsoft
+          {a.continueMs}
         </Button>
       </div>
 
-      <div className="or">or with email</div>
+      <div className="or">{a.orWithEmail}</div>
 
       {/* ── Email + password ── */}
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         <Input
-          label="Email"
+          label={a.workEmail}
           type="email"
           value={email}
           onChange={e => setEmail(e.target.value)}
@@ -234,11 +234,11 @@ function StepSignIn({
         />
         <div>
           <Input
-            label="Password"
+            label={a.password}
             type={showPw ? 'text' : 'password'}
             value={password}
             onChange={e => setPassword(e.target.value)}
-            placeholder="Your password"
+            placeholder={a.enterPassword}
             autoComplete="current-password"
             required
           />
@@ -248,14 +248,14 @@ function StepSignIn({
               onClick={() => setShowPw(v => !v)}
               style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-low)', padding: 0 }}
             >
-              {showPw ? 'Hide password' : 'Show password'}
+              {showPw ? a.hidePassword : a.showPassword}
             </button>
             <button
               type="button"
               onClick={() => router.push('/forgot-password')}
               style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--tan-11)', padding: 0, fontWeight: 500 }}
             >
-              Forgot password?
+              {a.forgotPassword}
             </button>
           </div>
         </div>
@@ -270,25 +270,25 @@ function StepSignIn({
           disabled={loading && provider !== 'email'}
           style={{ width: '100%' }}
         >
-          Sign in
+          {a.signinBtn}
         </Button>
       </form>
 
       {/* ── Trust line ── */}
       <div className="auth-trust">
         <LockIcon />
-        <span>Protected with 2FA and end-to-end encryption. We never store bank credentials.</span>
+        <span>{a.trustLine}</span>
       </div>
 
       {/* ── Create account ── */}
       <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--text-low)', margin: '4px 0 0' }}>
-        Don't have an account?{' '}
+        {a.noAccount}{' '}
         <button
           type="button"
           onClick={() => router.push('/register')}
           style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--tan-11)', fontWeight: 600, padding: 0, fontSize: 'inherit' }}
         >
-          Create account
+          {a.createAccountBtn}
         </button>
       </p>
     </div>
@@ -309,6 +309,8 @@ function StepTwoFactor({
   setLoading: (v: boolean) => void
 }) {
   const router = useRouter()
+  const { t } = useLocale()
+  const a = t.auth
   const [code,  setCode]  = useState('')
   const [error, setError] = useState('')
 
@@ -320,7 +322,7 @@ function StepTwoFactor({
     const res = await authClient.twoFactor.verifyTotp({ code })
     setLoading(false)
     if (res?.error) {
-      setError('Invalid code — check your authenticator app and try again.')
+      setError(a.errInvalidCode)
     } else {
       router.push('/ask')
     }
@@ -330,18 +332,16 @@ function StepTwoFactor({
     <div className="form" style={{ marginTop: 26 }}>
       <div style={{ marginBottom: 20 }}>
         <p className="lead" style={{ margin: '0 0 6px', fontSize: 15, fontWeight: 600 }}>
-          Two-factor verification
+          {a.twoFaTitle}
         </p>
         <p className="hint" style={{ margin: 0 }}>
-          {method === 'sms'
-            ? 'Enter the 6-digit code sent to your phone.'
-            : 'Enter the 6-digit code from your authenticator app (Google Authenticator, Authy, etc.).'}
+          {method === 'sms' ? a.smsHint : a.twoFaHint}
         </p>
       </div>
 
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         <Input
-          label="Verification code"
+          label={a.verificationCode}
           type="text"
           inputMode="numeric"
           pattern="[0-9]*"
@@ -356,14 +356,14 @@ function StepTwoFactor({
         />
         {error && <p style={{ color: 'var(--neg)', fontSize: 13, margin: 0 }}>{error}</p>}
         <Button variant="primary" size="lg" type="submit" loading={loading} style={{ width: '100%' }}>
-          Verify &amp; sign in
+          {a.verifyAndSignIn}
         </Button>
         <button
           type="button"
           onClick={onBack}
           style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-low)', fontSize: 13, padding: 0 }}
         >
-          ← Back
+          {a.back}
         </button>
       </form>
     </div>
@@ -375,19 +375,15 @@ function StepTwoFactor({
 type Step = 'welcome-back' | 'signin' | '2fa' | 'sms'
 
 export function LoginForm() {
-  const [step,          setStep]          = useState<Step>('signin')
+  const [step,            setStep]            = useState<Step>('signin')
   const [rememberedEmail, setRememberedEmail] = useState<string | null>(null)
-  const [loading,       setLoading]       = useState(false)
-  const [twoFaMethod,   setTwoFaMethod]   = useState<'2fa' | 'sms'>('2fa')
+  const [loading,         setLoading]         = useState(false)
+  const [twoFaMethod,     setTwoFaMethod]     = useState<'2fa' | 'sms'>('2fa')
 
-  // Check for remembered email on mount
   useEffect(() => {
     try {
       const last = localStorage.getItem('fain_last_email')
-      if (last) {
-        setRememberedEmail(last)
-        setStep('welcome-back')
-      }
+      if (last) { setRememberedEmail(last); setStep('welcome-back') }
     } catch {}
   }, [])
 
@@ -395,7 +391,6 @@ export function LoginForm() {
     return (
       <StepWelcomeBack
         email={rememberedEmail}
-        onContinue={() => {}}
         onSwitch={() => { setRememberedEmail(null); setStep('signin') }}
         loading={loading}
         setLoading={setLoading}
