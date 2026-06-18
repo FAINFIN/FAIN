@@ -42,8 +42,8 @@ function StepEmail({
     e.preventDefault()
     setLoading(true)
     setError('')
-    // Better Auth's forgetPassword — always succeeds (avoids email enumeration)
-    await authClient.forgetPassword({ email, redirectTo: '/forgot-password/reset' })
+    // Always succeeds (avoids email enumeration)
+    await authClient.requestPasswordReset({ email, redirectTo: '/forgot-password/reset' })
     setLoading(false)
     onSent(email)
   }
@@ -76,7 +76,7 @@ function StepSent({ email, onResend }: { email: string; onResend: () => void }) 
 
   async function handleResend() {
     setLoading(true)
-    await authClient.forgetPassword({ email, redirectTo: '/forgot-password/reset' })
+    await authClient.requestPasswordReset({ email, redirectTo: '/forgot-password/reset' })
     setLoading(false)
     setResent(true)
     setTimeout(() => setResent(false), 30_000)
