@@ -140,7 +140,7 @@ export function CashFlowClient() {
         {/* Metrics */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: 12 }}>
           <MetricCard label={t.dash.cashOnHand} value={fmt(cash.totalCash)} />
-          <MetricCard label={t.dash.monthlyBurn} value={fmt(avgBurn, true)} sub={locale === 'ka' ? 'ბოლო 12 თვე' : 'last 12 months'} />
+          <MetricCard label={t.dash.monthlyBurn} value={fmt(avgBurn, true)} sub={t.cashFlow.last12} />
           {changed && (
             <MetricCard
               label={t.cashFlow.scenarioBurn}
@@ -154,14 +154,14 @@ export function CashFlowClient() {
             value={scenRunway >= 18 ? t.cashFlow.months18 : t.dash.months(scenRunway)}
             trend={changed ? (scenRunway >= baseRunway ? 'up' : 'down') : undefined}
             trendLabel={changed && scenRunway !== baseRunway
-              ? `${locale === 'ka' ? 'ბაზა' : 'base'}: ${baseRunway >= 18 ? t.cashFlow.months18 : t.dash.months(baseRunway)}`
+              ? `${t.cashFlow.base}: ${baseRunway >= 18 ? t.cashFlow.months18 : t.dash.months(baseRunway)}`
               : undefined}
           />
         </div>
 
         {/* Chart + levers */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 16, alignItems: 'start' }}>
-          <ChartCard title={changed ? t.cashFlow.projection : (locale === 'ka' ? 'ნაღდი ფულის პროგნოზი' : 'Projected cash balance')} height={260}>
+          <ChartCard title={changed ? t.cashFlow.projection : t.cashFlow.projectedBalance} height={260}>
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={projection}>
                 <defs>
@@ -230,7 +230,7 @@ export function CashFlowClient() {
               <YAxis tickFormatter={v => fmt(v, true)} tick={{ fontSize: 11, fill: 'var(--text-low)' }} axisLine={false} tickLine={false} width={56} />
               <ReferenceLine y={0} stroke="var(--border-subtle)" strokeWidth={1} />
               <Tooltip formatter={(v) => fmt(Number(v ?? 0))} contentStyle={{ background: 'var(--surface-primary)', border: '1px solid var(--border-subtle)', borderRadius: 10, fontSize: 13 }} />
-              <Line dataKey="net" stroke="var(--tan-9)" strokeWidth={2.5} dot={{ r: 3, fill: 'var(--tan-9)' }} name={locale === 'ka' ? 'წმინდა' : 'Net'} />
+              <Line dataKey="net" stroke="var(--tan-9)" strokeWidth={2.5} dot={{ r: 3, fill: 'var(--tan-9)' }} name={t.cashFlow.net} />
             </LineChart>
           </ResponsiveContainer>
         </ChartCard>

@@ -9,7 +9,7 @@ import type { Provider } from '@/types'
 function CallbackInner() {
   const router  = useRouter()
   const params  = useSearchParams()
-  const { locale } = useLocale()
+  const { t } = useLocale()
   const [status, setStatus] = useState<'syncing' | 'done' | 'error'>('syncing')
 
   useEffect(() => {
@@ -113,15 +113,15 @@ function CallbackInner() {
       {status === 'syncing' && (
         <>
           <div className="mark" style={{ width: 56, height: 56, fontSize: 24 }}>f</div>
-          <p className="lead" style={{ margin: 0 }}>{locale === 'ka' ? 'ანგარიშები სინქრონიზდება…' : 'Syncing your accounts…'}</p>
-          <p className="hint" style={{ margin: 0 }}>{locale === 'ka' ? '24 თვის ისტორია — დაახლოებით 30 წამი.' : 'This takes about 30 seconds for 24 months of history.'}</p>
+          <p className="lead" style={{ margin: 0 }}>{t.callback.syncing}</p>
+          <p className="hint" style={{ margin: 0 }}>{t.callback.syncHint}</p>
         </>
       )}
-      {status === 'done'  && <p className="lead">{locale === 'ka' ? 'მზადაა ✓' : 'All done ✓'}</p>}
+      {status === 'done'  && <p className="lead">{t.callback.done}</p>}
       {status === 'error' && (
         <>
-          <p className="lead neg">{locale === 'ka' ? 'შეცდომა მოხდა.' : 'Something went wrong.'}</p>
-          <a className="btn btn-outline" href="/connect-bank">{locale === 'ka' ? 'სცადე ხელახლა' : 'Try again'}</a>
+          <p className="lead neg">{t.callback.error}</p>
+          <a className="btn btn-outline" href="/connect-bank">{t.callback.tryAgain}</a>
         </>
       )}
     </div>

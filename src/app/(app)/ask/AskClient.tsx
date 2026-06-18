@@ -246,15 +246,13 @@ function CurrencyToggle({ value, onChange }: { value: Currency; onChange: (c: Cu
 }
 
 // ─── Greeting ──────────────────────────────────────────────────────
-function getGreeting(name: string | null | undefined, locale: 'en' | 'ka'): string {
-  const h = new Date().getHours()
-  const first = name?.split(' ')[0] ?? (locale === 'ka' ? 'გამარჯობა' : 'there')
-  if (locale === 'ka') {
-    const part = h < 12 ? 'დილა მშვიდობისა' : h < 17 ? 'შუადღე მშვიდობისა' : 'საღამო მშვიდობისა'
-    return `${part}, ${first}.`
-  }
-  const part = h < 12 ? 'morning' : h < 17 ? 'afternoon' : 'evening'
-  return `Good ${part}, ${first}.`
+type AskStrings = ReturnType<typeof useLocale>['t']['ask']
+
+function getGreeting(name: string | null | undefined, a: AskStrings): string {
+  const h     = new Date().getHours()
+  const first = name?.split(' ')[0] ?? a.greetingFallback
+  const part  = h < 12 ? a.greetingMorning : h < 17 ? a.greetingAfternoon : a.greetingEvening
+  return `${part}, ${first}.`
 }
 
 // ─── KPI row ───────────────────────────────────────────────────────
@@ -264,12 +262,15 @@ function fmtGel(n: number): string {
   return `₾${Math.round(n)}`
 }
 
-function KpiRow({ hasData, locale }: { hasData: boolean; locale: 'en' | 'ka' }) {
+function KpiRow({ hasData }: { hasData: boolean }) {
+  const { t } = useLocale()
+  const a     = t.ask
+
   const live = useLiveQuery(async () => {
     if (!hasData) return null
     const db       = getDb()
     const accounts = await db.accounts.toArray()
-    const cash     = accounts.reduce((s, a) => s + a.balance, 0)
+    const cash     = accounts.reduce((s, ac) => s + ac.balance, 0)
 
     const now            = new Date()
     const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3, 1)
@@ -277,8 +278,8 @@ function KpiRow({ hasData, locale }: { hasData: boolean; locale: 'en' | 'ka' }) 
       .where('date').between(threeMonthsAgo, now, true, true)
       .toArray()
 
-    const totalExpenses = txs.filter(t => t.type === 'debit').reduce((s, t)  => s + t.amount, 0)
-    const totalIncome   = txs.filter(t => t.type === 'credit').reduce((s, t) => s + t.amount, 0)
+    const totalExpenses = txs.filter(tx => tx.type === 'debit').reduce((s, tx)  => s + tx.amount, 0)
+    const totalIncome   = txs.filter(tx => tx.type === 'credit').reduce((s, tx) => s + tx.amount, 0)
     const avgBurn       = totalExpenses / 3
     const avgMrr        = totalIncome   / 3
     const runway        = avgBurn > 0 ? Math.floor(cash / avgBurn) : 0
@@ -287,23 +288,23 @@ function KpiRow({ hasData, locale }: { hasData: boolean; locale: 'en' | 'ka' }) 
   }, [hasData])
 
   const kpi = hasData && live
-    ? { cashOnHand: fmtGel(live.cash), netBurn: fmtGel(live.avgBurn), runway: `${live.runway} ${locale === 'ka' ? 'თვე' : 'mo'}`, mrr: fmtGel(live.avgMrr) }
+    ? { cashOnHand: fmtGel(live.cash), netBurn: fmtGel(live.avgBurn), runway: `${live.runway} ${a.kpiMo}`, mrr: fmtGel(live.avgMrr) }
     : SAMPLE_KPI
 
   return (
     <div className="kpi-row">
       <div className="kpi-tile">
-        <span className="kpi-label">{locale === 'ka' ? 'ნაღდი ფული' : 'CASH ON HAND'}</span>
+        <span className="kpi-label">{a.kpiCash}</span>
         <span className="kpi-value mono">{kpi.cashOnHand}</span>
       </div>
       <div className="kpi-divider" />
       <div className="kpi-tile">
-        <span className="kpi-label">{locale === 'ka' ? 'თვიური ხარჯი' : 'NET BURN/MO'}</span>
+        <span className="kpi-label">{a.kpiNetBurn}</span>
         <span className="kpi-value mono neg">{kpi.netBurn}</span>
       </div>
       <div className="kpi-divider" />
       <div className="kpi-tile">
-        <span className="kpi-label">{locale === 'ka' ? 'ფინ. გამძლეობა' : 'RUNWAY'}</span>
+        <span className="kpi-label">{a.kpiRunway}</span>
         <span className="kpi-value mono">{kpi.runway}</span>
       </div>
       <div className="kpi-divider" />
@@ -396,7 +397,9 @@ function ChatInput({
 }
 
 // ─── Connect-bank nudge ────────────────────────────────────────────
-function ConnectNudge({ locale }: { locale: 'en' | 'ka' }) {
+function ConnectNudge() {
+  const { t } = useLocale()
+  const a     = t.ask
   return (
     <div className="connect-nudge">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--tan-9)', flexShrink: 0 }}>
@@ -404,27 +407,24 @@ function ConnectNudge({ locale }: { locale: 'en' | 'ka' }) {
         <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
       </svg>
       <span>
-        {locale === 'ka'
-          ? <>ეს სადემო მონაცემია. <a href="/connect-bank" className="connect-nudge-link">დაუკავშირე ბანკი</a> ნამდვილი ციფრებისთვის.</>
-          : <>This is sample data. <a href="/connect-bank" className="connect-nudge-link">Connect your bank</a> to see your real numbers.</>
-        }
+        {a.connectNudgePrefix}{' '}
+        <a href="/connect-bank" className="connect-nudge-link">{a.connectNudgeLink}</a>
+        {' '}{a.connectNudgeSuffix}
       </span>
     </div>
   )
 }
 
 // ─── Trust line ────────────────────────────────────────────────────
-function TrustLine({ locale }: { locale: 'en' | 'ka' }) {
+function TrustLine() {
+  const { t } = useLocale()
   return (
     <p className="ask-trust">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }}>
         <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
         <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
       </svg>
-      {locale === 'ka'
-        ? 'მხოლოდ წაკითხვა · Fain ვერ ახდენს გადარიცხვას · მონაცემები ბრაუზერშია'
-        : 'Read-only · Fain can never move money · data stays in your browser'
-      }
+      {t.ask.trustLine}
     </p>
   )
 }
@@ -435,7 +435,7 @@ function AskClientInner() {
   const searchParams   = useSearchParams()
   const conversationId = searchParams.get('c')
   const user           = useUser()
-  const { locale, t }  = useLocale()
+  const { t }          = useLocale()
   const [currency, setCurrency] = useState<Currency>('GEL')
   const bottomRef      = useRef<HTMLDivElement>(null)
   const didAutoSend    = useRef(false)
@@ -484,13 +484,11 @@ function AskClientInner() {
             <div className="ask-mark" aria-hidden="true">f</div>
 
             {/* Greeting */}
-            <h1 className="ask-greeting">{getGreeting(user.name, locale)}</h1>
+            <h1 className="ask-greeting">{getGreeting(user.name, t.ask)}</h1>
 
             {/* Status line */}
             <p className="ask-subhead">
-              {hasRealData
-                ? (locale === 'ka' ? 'ანგარიშები დაკავშირებულია. დასვი შეკითხვა.' : 'Your accounts are connected. Ask me anything, or pick up where you left off.')
-                : (locale === 'ka' ? 'ჰკითხე ფინანსებზე, ან გააგრძელე იქიდან, სადაც გაჩერდი.' : 'Ask me anything about your finances, or pick up where you left off.')}
+              {hasRealData ? t.ask.connectedHint : t.ask.sampleHint}
             </p>
 
             {/* Ask box */}
@@ -519,13 +517,13 @@ function AskClientInner() {
             </div>
 
             {/* KPI row */}
-            <KpiRow hasData={hasRealData} locale={locale} />
+            <KpiRow hasData={hasRealData} />
 
             {/* Connect nudge if no bank */}
-            {!hasRealData && <ConnectNudge locale={locale} />}
+            {!hasRealData && <ConnectNudge />}
 
             {/* Trust line */}
-            <TrustLine locale={locale} />
+            <TrustLine />
           </div>
         ) : (
           /* ── Chat thread ── */
@@ -534,7 +532,7 @@ function AskClientInner() {
             {streaming && <TypingIndicator />}
             {error && (
               <div style={{ textAlign: 'center', padding: '10px 0', color: 'var(--neg)', fontSize: 13 }}>
-                {locale === 'ka' ? 'შეცდომა — სცადე ხელახლა.' : 'Something went wrong — try again.'}
+                {t.ask.errorMsg}
               </div>
             )}
             <div ref={bottomRef} />

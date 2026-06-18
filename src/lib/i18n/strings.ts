@@ -27,6 +27,10 @@ export const STRINGS = {
       netCashFlow:  'Net cash flow',
       topCategories:'Top spending categories',
       months:       (n: number) => `${n} mo`,
+      // Chart series names
+      income:       'Income',
+      expenses:     'Expenses',
+      net:          'Net',
     },
     // Cash flow
     cashFlow: {
@@ -39,7 +43,19 @@ export const STRINGS = {
       scenarioRunway: 'Scenario runway',
       netHistory:   'Monthly net cash flow — 12 months',
       projection:   'Projected cash balance — base vs scenario',
-      months18:     '18+ mo',
+      months18:           '18+ mo',
+      last12:             'last 12 months',
+      base:               'base',
+      projectedBalance:   'Projected cash balance',
+      net:                'Net',
+    },
+    // Callback / bank sync
+    callback: {
+      syncing:   'Syncing your accounts…',
+      syncHint:  'This takes about 30 seconds for 24 months of history.',
+      done:      'All done ✓',
+      error:     'Something went wrong.',
+      tryAgain:  'Try again',
     },
     // Ask
     ask: {
@@ -51,6 +67,27 @@ export const STRINGS = {
         'Model a $2M raise',
         'Am I profitable yet?',
       ],
+      // Greeting
+      greetingMorning:   'Good morning',
+      greetingAfternoon: 'Good afternoon',
+      greetingEvening:   'Good evening',
+      greetingFallback:  'there',
+      // KPI labels (short/caps)
+      kpiCash:     'CASH ON HAND',
+      kpiNetBurn:  'NET BURN/MO',
+      kpiRunway:   'RUNWAY',
+      kpiMo:       'mo',
+      // Status lines
+      connectedHint: 'Your accounts are connected. Ask me anything, or pick up where you left off.',
+      sampleHint:    'Ask me anything about your finances, or pick up where you left off.',
+      // Error
+      errorMsg:    'Something went wrong — try again.',
+      // Connect nudge
+      connectNudgePrefix: 'This is sample data.',
+      connectNudgeLink:   'Connect your bank',
+      connectNudgeSuffix: 'to see your real numbers.',
+      // Trust line
+      trustLine:   'Read-only · Fain can never move money · data stays in your browser',
     },
     // Auth / onboarding
     auth: {
@@ -277,6 +314,10 @@ export const STRINGS = {
       netCashFlow:  'წმინდა ფულის ნაკადი',
       topCategories:'ხარჯის კატეგორიები',
       months:       (n: number) => `${n} თვე`,
+      // Chart series names
+      income:       'შემოსავალი',
+      expenses:     'ხარჯი',
+      net:          'წმინდა',
     },
     cashFlow: {
       title:        'ფულის ნაკადი & სცენარები',
@@ -288,7 +329,19 @@ export const STRINGS = {
       scenarioRunway: 'სცენარის გამძლეობა',
       netHistory:   'თვიური წმინდა ნაკადი — 12 თვე',
       projection:   'ნაღდი ფულის პროგნოზი — ბაზა vs სცენარი',
-      months18:     '18+ თვე',
+      months18:           '18+ თვე',
+      last12:             'ბოლო 12 თვე',
+      base:               'ბაზა',
+      projectedBalance:   'ნაღდი ფულის პროგნოზი',
+      net:                'წმინდა',
+    },
+    // Callback / bank sync
+    callback: {
+      syncing:   'ანგარიშები სინქრონიზდება…',
+      syncHint:  '24 თვის ისტორია — დაახლოებით 30 წამი.',
+      done:      'მზადაა ✓',
+      error:     'შეცდომა მოხდა.',
+      tryAgain:  'სცადე ხელახლა',
     },
     ask: {
       title:        'ჰკითხე Fain-ს',
@@ -299,6 +352,27 @@ export const STRINGS = {
         '₾5M ინვესტიციის მოდელი',
         'მომგებიანი ვარ?',
       ],
+      // Greeting
+      greetingMorning:   'დილა მშვიდობისა',
+      greetingAfternoon: 'შუადღე მშვიდობისა',
+      greetingEvening:   'საღამო მშვიდობისა',
+      greetingFallback:  'გამარჯობა',
+      // KPI labels
+      kpiCash:     'ნაღდი ფული',
+      kpiNetBurn:  'თვიური ხარჯი',
+      kpiRunway:   'ფინ. გამძლეობა',
+      kpiMo:       'თვე',
+      // Status lines
+      connectedHint: 'ანგარიშები დაკავშირებულია. დასვი შეკითხვა.',
+      sampleHint:    'ჰკითხე ფინანსებზე, ან გააგრძელე იქიდან, სადაც გაჩერდი.',
+      // Error
+      errorMsg:    'შეცდომა — სცადე ხელახლა.',
+      // Connect nudge
+      connectNudgePrefix: 'ეს სადემო მონაცემია.',
+      connectNudgeLink:   'დაუკავშირე ბანკი',
+      connectNudgeSuffix: 'ნამდვილი ციფრებისთვის.',
+      // Trust line
+      trustLine:   'მხოლოდ წაკითხვა · Fain ვერ ახდენს გადარიცხვას · მონაცემები ბრაუზერშია',
     },
     auth: {
       // Headings
