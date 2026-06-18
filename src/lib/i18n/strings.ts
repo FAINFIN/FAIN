@@ -167,6 +167,49 @@ export const STRINGS = {
       accountCount: (n: number) => `${n} account${n !== 1 ? 's' : ''}`,
       connCount:    (n: number) => `${n} connection${n !== 1 ? 's' : ''}`,
     },
+    // Onboarding wizard
+    onboarding: {
+      stepOf:         (cur: number, total: number) => `Step ${cur} of ${total}`,
+      back:           '← Back',
+      continue:       'Continue →',
+      launch:         'Launch Fain →',
+      // Step 1 — role
+      roleTitle:      "What's your role?",
+      roleLead:       "We'll tailor Fain to what matters most to you.",
+      roles: {
+        founder:    { label: 'Founder / CEO',   desc: 'Running the whole show' },
+        cfo:        { label: 'CFO / Finance',    desc: 'Financial oversight' },
+        accountant: { label: 'Accountant',       desc: 'Books & compliance' },
+        investor:   { label: 'Investor',         desc: 'Portfolio visibility' },
+        consultant: { label: 'Consultant',       desc: 'Client advisory' },
+        other:      { label: 'Other',            desc: 'Something else' },
+      },
+      // Step 2 — company size
+      sizeTitle:      'Company size?',
+      sizeLead:       'Helps us set the right context for your numbers.',
+      sizes: {
+        solo:   { label: 'Solo',    desc: 'Just me' },
+        s2_10:  { label: '2–10',    desc: 'Small team' },
+        s11_50: { label: '11–50',   desc: 'Growing team' },
+        s51_200:{ label: '51–200',  desc: 'Mid-size' },
+        s200p:  { label: '200+',    desc: 'Large org' },
+      },
+      // Step 3 — goal
+      goalTitle:      'Primary goal?',
+      goalLead:       'What do you most want Fain to help with?',
+      goals: {
+        cash_flow:   { label: 'Cash flow tracking',  desc: 'Always know your runway' },
+        budgeting:   { label: 'Budgeting',            desc: 'Control spending' },
+        forecasting: { label: 'Forecasting',          desc: 'Plan ahead with AI' },
+        reporting:   { label: 'Financial reporting',  desc: 'Board & investor reports' },
+        ai:          { label: 'AI analysis',          desc: 'Ask anything, get answers' },
+      },
+      // Step 4 — workspace
+      wsTitle:        'Name your workspace.',
+      wsLead:         'Usually your company name. You can change it later.',
+      wsPlaceholder:  'e.g. TBC Bank, Redberry, Studio X',
+      wsHint:         'This is how your workspace will be labelled in Fain.',
+    },
     // Misc
     loading:    'Loading…',
     liveLabel:  'Live',
@@ -332,6 +375,49 @@ export const STRINGS = {
       },
       accountCount: (n: number) => `${n} ანგარიში`,
       connCount:    (n: number) => `${n} კავშირი`,
+    },
+    // Onboarding wizard
+    onboarding: {
+      stepOf:         (cur: number, total: number) => `ნაბიჯი ${cur} / ${total}`,
+      back:           '← უკან',
+      continue:       'გაგრძელება →',
+      launch:         'Fain-ის გაშვება →',
+      // Step 1 — role
+      roleTitle:      'რა არის შენი როლი?',
+      roleLead:       'Fain-ს მოვარგებთ იმას, რაც შენთვის ყველაზე მნიშვნელოვანია.',
+      roles: {
+        founder:    { label: 'დამფუძნებელი / CEO', desc: 'ყველაფერს მართავს' },
+        cfo:        { label: 'CFO / ფინანსები',     desc: 'ფინანსური ზედამხედველობა' },
+        accountant: { label: 'ბუღალტერი',           desc: 'წიგნები და შესაბამისობა' },
+        investor:   { label: 'ინვესტორი',            desc: 'პორტფელის ხილვადობა' },
+        consultant: { label: 'კონსულტანტი',          desc: 'კლიენტის კონსულტაცია' },
+        other:      { label: 'სხვა',                 desc: 'სხვა რამ' },
+      },
+      // Step 2 — company size
+      sizeTitle:      'კომპანიის ზომა?',
+      sizeLead:       'გვეხმარება შენი ციფრების სწორ კონტექსტში ჩასმაში.',
+      sizes: {
+        solo:   { label: 'მარტო',   desc: 'მხოლოდ მე' },
+        s2_10:  { label: '2–10',    desc: 'პატარა გუნდი' },
+        s11_50: { label: '11–50',   desc: 'მზარდი გუნდი' },
+        s51_200:{ label: '51–200',  desc: 'საშუალო' },
+        s200p:  { label: '200+',    desc: 'დიდი ორგ.' },
+      },
+      // Step 3 — goal
+      goalTitle:      'მთავარი მიზანი?',
+      goalLead:       'Fain-ს რაში ჩაითვლი ყველაზე გამოსადეგად?',
+      goals: {
+        cash_flow:   { label: 'ფულის ნაკადის კონტროლი', desc: 'ყოველთვის იცოდე runway' },
+        budgeting:   { label: 'ბიუჯეტირება',              desc: 'ხარჯების კონტროლი' },
+        forecasting: { label: 'პროგნოზირება',             desc: 'AI-ით დაგეგმვა' },
+        reporting:   { label: 'ფინანსური ანგარიში',        desc: 'Board & ინვესტორების ანგარიში' },
+        ai:          { label: 'AI ანალიზი',                desc: 'ნებისმიერ კითხვაზე პასუხი' },
+      },
+      // Step 4 — workspace
+      wsTitle:        'სახელი სამუშაო სივრცეს.',
+      wsLead:         'ჩვეულებრივ კომპანიის სახელი. მოგვიანებით შეგიძლია შეცვლა.',
+      wsPlaceholder:  'მაგ. TBC Bank, Redberry, Studio X',
+      wsHint:         'ასე აღინიშნება შენი სივრცე Fain-ში.',
     },
     loading:    'იტვირთება…',
     liveLabel:  'პირდაპირ',

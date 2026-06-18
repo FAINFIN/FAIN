@@ -3,33 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
-
-// ─── Step data ────────────────────────────────────────────────────────────────
-
-const ROLES = [
-  { value: 'founder',    label: 'Founder / CEO',    desc: 'Running the whole show' },
-  { value: 'cfo',        label: 'CFO / Finance',    desc: 'Financial oversight' },
-  { value: 'accountant', label: 'Accountant',        desc: 'Books & compliance' },
-  { value: 'investor',   label: 'Investor',          desc: 'Portfolio visibility' },
-  { value: 'consultant', label: 'Consultant',        desc: 'Client advisory' },
-  { value: 'other',      label: 'Other',             desc: 'Something else' },
-]
-
-const COMPANY_SIZES = [
-  { value: 'solo',   label: 'Solo',    desc: 'Just me' },
-  { value: '2-10',   label: '2–10',    desc: 'Small team' },
-  { value: '11-50',  label: '11–50',   desc: 'Growing team' },
-  { value: '51-200', label: '51–200',  desc: 'Mid-size' },
-  { value: '200+',   label: '200+',    desc: 'Large org' },
-]
-
-const GOALS = [
-  { value: 'cash_flow',  label: 'Cash flow tracking',  desc: 'Always know your runway' },
-  { value: 'budgeting',  label: 'Budgeting',            desc: 'Control spending' },
-  { value: 'forecasting',label: 'Forecasting',          desc: 'Plan ahead with AI' },
-  { value: 'reporting',  label: 'Financial reporting',  desc: 'Board & investor reports' },
-  { value: 'ai',         label: 'AI analysis',          desc: 'Ask anything, get answers' },
-]
+import { useLocale } from '@/lib/i18n/LocaleContext'
 
 // ─── Option card ──────────────────────────────────────────────────────────────
 
@@ -83,110 +57,40 @@ function StepDots({ total, current }: { total: number; current: number }) {
   )
 }
 
-// ─── Individual steps ─────────────────────────────────────────────────────────
-
-function StepRole({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  return (
-    <div>
-      <h2 className="serif" style={{ margin: '0 0 8px', fontSize: 28 }}>
-        What's your <span className="em">role</span>?
-      </h2>
-      <p className="lead" style={{ margin: '0 0 24px', fontSize: 15 }}>
-        We'll tailor Fain to what matters most to you.
-      </p>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {ROLES.map(r => (
-          <OptionCard key={r.value} label={r.label} desc={r.desc} selected={value === r.value} onClick={() => onChange(r.value)} />
-        ))}
-      </div>
-    </div>
-  )
-}
-
-function StepCompanySize({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  return (
-    <div>
-      <h2 className="serif" style={{ margin: '0 0 8px', fontSize: 28 }}>
-        Company <span className="em">size</span>?
-      </h2>
-      <p className="lead" style={{ margin: '0 0 24px', fontSize: 15 }}>
-        Helps us set the right context for your numbers.
-      </p>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {COMPANY_SIZES.map(s => (
-          <OptionCard key={s.value} label={s.label} desc={s.desc} selected={value === s.value} onClick={() => onChange(s.value)} />
-        ))}
-      </div>
-    </div>
-  )
-}
-
-function StepGoal({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  return (
-    <div>
-      <h2 className="serif" style={{ margin: '0 0 8px', fontSize: 28 }}>
-        Primary <span className="em">goal</span>?
-      </h2>
-      <p className="lead" style={{ margin: '0 0 24px', fontSize: 15 }}>
-        What do you most want Fain to help with?
-      </p>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {GOALS.map(g => (
-          <OptionCard key={g.value} label={g.label} desc={g.desc} selected={value === g.value} onClick={() => onChange(g.value)} />
-        ))}
-      </div>
-    </div>
-  )
-}
-
-function StepWorkspace({
-  value,
-  onChange,
-}: {
-  value: string
-  onChange: (v: string) => void
-}) {
-  return (
-    <div>
-      <h2 className="serif" style={{ margin: '0 0 8px', fontSize: 28 }}>
-        Name your <span className="em">workspace</span>.
-      </h2>
-      <p className="lead" style={{ margin: '0 0 24px', fontSize: 15 }}>
-        Usually your company name. You can change it later.
-      </p>
-      <input
-        type="text"
-        value={value}
-        onChange={e => onChange(e.target.value)}
-        placeholder="e.g. TBC Bank, Redberry, Studio X"
-        autoFocus
-        style={{
-          width: '100%', boxSizing: 'border-box',
-          padding: '14px 16px',
-          fontSize: 15,
-          border: '2px solid var(--border-loud)',
-          borderRadius: 'var(--r-control, 13px)',
-          outline: 'none',
-          background: 'var(--surface-primary)',
-          color: 'var(--text-high)',
-          fontFamily: 'var(--font-ui)',
-        }}
-        onFocus={e => { e.currentTarget.style.borderColor = 'var(--tan-9)' }}
-        onBlur={e => { e.currentTarget.style.borderColor = 'var(--border-loud)' }}
-      />
-      <p style={{ margin: '10px 0 0', fontSize: 13, color: 'var(--text-low)' }}>
-        This is how your workspace will be labelled in Fain.
-      </p>
-    </div>
-  )
-}
-
 // ─── Root wizard ──────────────────────────────────────────────────────────────
 
 const TOTAL_STEPS = 4
 
 export function OnboardingWizard() {
   const router = useRouter()
+  const { t } = useLocale()
+  const o = t.onboarding
+
+  const ROLES = [
+    { value: 'founder',    ...o.roles.founder    },
+    { value: 'cfo',        ...o.roles.cfo        },
+    { value: 'accountant', ...o.roles.accountant },
+    { value: 'investor',   ...o.roles.investor   },
+    { value: 'consultant', ...o.roles.consultant },
+    { value: 'other',      ...o.roles.other      },
+  ]
+
+  const COMPANY_SIZES = [
+    { value: 'solo',   ...o.sizes.solo    },
+    { value: '2-10',   ...o.sizes.s2_10   },
+    { value: '11-50',  ...o.sizes.s11_50  },
+    { value: '51-200', ...o.sizes.s51_200 },
+    { value: '200+',   ...o.sizes.s200p   },
+  ]
+
+  const GOALS = [
+    { value: 'cash_flow',   ...o.goals.cash_flow   },
+    { value: 'budgeting',   ...o.goals.budgeting   },
+    { value: 'forecasting', ...o.goals.forecasting },
+    { value: 'reporting',   ...o.goals.reporting   },
+    { value: 'ai',          ...o.goals.ai          },
+  ]
+
   const [step,         setStep]         = useState(0)
   const [role,         setRole]         = useState('')
   const [companySize,  setCompanySize]  = useState('')
@@ -208,7 +112,6 @@ export function OnboardingWizard() {
       return
     }
 
-    // Final step — save to DB
     setLoading(true)
     setError('')
     try {
@@ -263,10 +166,88 @@ export function OnboardingWizard() {
       }}>
         <StepDots total={TOTAL_STEPS} current={step} />
 
-        {step === 0 && <StepRole         value={role}        onChange={setRole} />}
-        {step === 1 && <StepCompanySize  value={companySize} onChange={setCompanySize} />}
-        {step === 2 && <StepGoal         value={goal}        onChange={setGoal} />}
-        {step === 3 && <StepWorkspace    value={workspace}   onChange={setWorkspace} />}
+        {/* Step 0 — Role */}
+        {step === 0 && (
+          <div>
+            <h2 className="serif" style={{ margin: '0 0 8px', fontSize: 28 }}>
+              {o.roleTitle.split(' ').map((w, i, arr) => {
+                const isLast = i === arr.length - 1
+                return isLast
+                  ? <span key={i}><span className="em">{w}</span></span>
+                  : <span key={i}>{w} </span>
+              })}
+            </h2>
+            <p className="lead" style={{ margin: '0 0 24px', fontSize: 15 }}>{o.roleLead}</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {ROLES.map(r => (
+                <OptionCard key={r.value} label={r.label} desc={r.desc} selected={role === r.value} onClick={() => setRole(r.value)} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Step 1 — Company size */}
+        {step === 1 && (
+          <div>
+            <h2 className="serif" style={{ margin: '0 0 8px', fontSize: 28 }}>
+              {o.sizeTitle}
+            </h2>
+            <p className="lead" style={{ margin: '0 0 24px', fontSize: 15 }}>{o.sizeLead}</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {COMPANY_SIZES.map(s => (
+                <OptionCard key={s.value} label={s.label} desc={s.desc} selected={companySize === s.value} onClick={() => setCompanySize(s.value)} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Step 2 — Goal */}
+        {step === 2 && (
+          <div>
+            <h2 className="serif" style={{ margin: '0 0 8px', fontSize: 28 }}>
+              {o.goalTitle}
+            </h2>
+            <p className="lead" style={{ margin: '0 0 24px', fontSize: 15 }}>{o.goalLead}</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {GOALS.map(g => (
+                <OptionCard key={g.value} label={g.label} desc={g.desc} selected={goal === g.value} onClick={() => setGoal(g.value)} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Step 3 — Workspace */}
+        {step === 3 && (
+          <div>
+            <h2 className="serif" style={{ margin: '0 0 8px', fontSize: 28 }}>
+              {o.wsTitle}
+            </h2>
+            <p className="lead" style={{ margin: '0 0 24px', fontSize: 15 }}>{o.wsLead}</p>
+            <input
+              type="text"
+              value={workspace}
+              onChange={e => setWorkspace(e.target.value)}
+              placeholder={o.wsPlaceholder}
+              autoFocus
+              style={{
+                width: '100%', boxSizing: 'border-box',
+                padding: '14px 16px',
+                fontSize: 15,
+                border: '2px solid var(--border-loud)',
+                borderRadius: 'var(--r-control, 13px)',
+                outline: 'none',
+                background: 'var(--surface-primary)',
+                color: 'var(--text-high)',
+                fontFamily: 'var(--font-ui)',
+              }}
+              onFocus={e => { e.currentTarget.style.borderColor = 'var(--tan-9)' }}
+              onBlur={e => { e.currentTarget.style.borderColor = 'var(--border-loud)' }}
+            />
+            <p style={{ margin: '10px 0 0', fontSize: 13, color: 'var(--text-low)' }}>
+              {o.wsHint}
+            </p>
+          </div>
+        )}
 
         {error && <p style={{ color: 'var(--neg)', fontSize: 13, margin: '16px 0 0' }}>{error}</p>}
 
@@ -277,7 +258,7 @@ export function OnboardingWizard() {
               onClick={() => setStep(s => s - 1)}
               style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-low)', fontSize: 13, padding: '0 4px', flexShrink: 0 }}
             >
-              ← Back
+              {o.back}
             </button>
           )}
           <Button
@@ -289,12 +270,12 @@ export function OnboardingWizard() {
             style={{ flex: 1 }}
             type="button"
           >
-            {step === TOTAL_STEPS - 1 ? 'Launch Fain →' : 'Continue →'}
+            {step === TOTAL_STEPS - 1 ? o.launch : o.continue}
           </Button>
         </div>
 
         <p style={{ textAlign: 'center', fontSize: 12, color: 'var(--text-low)', margin: '14px 0 0' }}>
-          Step {step + 1} of {TOTAL_STEPS}
+          {o.stepOf(step + 1, TOTAL_STEPS)}
         </p>
       </div>
     </div>
