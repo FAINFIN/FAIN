@@ -3,11 +3,13 @@
 import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { getDb } from '@/lib/db/schema'
+import { useLocale } from '@/lib/i18n/LocaleContext'
 import type { Provider } from '@/types'
 
 function CallbackInner() {
   const router  = useRouter()
   const params  = useSearchParams()
+  const { locale } = useLocale()
   const [status, setStatus] = useState<'syncing' | 'done' | 'error'>('syncing')
 
   useEffect(() => {
@@ -111,15 +113,15 @@ function CallbackInner() {
       {status === 'syncing' && (
         <>
           <div className="mark" style={{ width: 56, height: 56, fontSize: 24 }}>f</div>
-          <p className="lead" style={{ margin: 0 }}>Syncing your accounts…</p>
-          <p className="hint" style={{ margin: 0 }}>This takes about 30 seconds for 24 months of history.</p>
+          <p className="lead" style={{ margin: 0 }}>{locale === 'ka' ? 'ანგარიშები სინქრონიზდება…' : 'Syncing your accounts…'}</p>
+          <p className="hint" style={{ margin: 0 }}>{locale === 'ka' ? '24 თვის ისტორია — დაახლოებით 30 წამი.' : 'This takes about 30 seconds for 24 months of history.'}</p>
         </>
       )}
-      {status === 'done'  && <p className="lead">All done ✓</p>}
+      {status === 'done'  && <p className="lead">{locale === 'ka' ? 'მზადაა ✓' : 'All done ✓'}</p>}
       {status === 'error' && (
         <>
-          <p className="lead neg">Something went wrong.</p>
-          <a className="btn btn-outline" href="/connect-bank">Try again</a>
+          <p className="lead neg">{locale === 'ka' ? 'შეცდომა მოხდა.' : 'Something went wrong.'}</p>
+          <a className="btn btn-outline" href="/connect-bank">{locale === 'ka' ? 'სცადე ხელახლა' : 'Try again'}</a>
         </>
       )}
     </div>

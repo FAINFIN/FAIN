@@ -7,6 +7,7 @@ import { Suspense } from 'react'
 import { cn } from '@/lib/utils/cn'
 import { authClient } from '@/lib/auth/client'
 import { getDb } from '@/lib/db/schema'
+import { useLocale } from '@/lib/i18n/LocaleContext'
 
 interface SidebarProps {
   user: { name?: string | null; email: string; image?: string | null }
@@ -97,6 +98,7 @@ function BankPill({ name }: { name: string }) {
 function SidebarInner({ user }: SidebarProps) {
   const router   = useRouter()
   const pathname = usePathname()
+  const { locale } = useLocale()
 
   // Live data from IndexedDB
   const conversations = useLiveQuery(
@@ -156,7 +158,7 @@ function SidebarInner({ user }: SidebarProps) {
           }}
         >
           <PlusIcon />
-          New question
+          {locale === 'ka' ? 'ახალი კითხვა' : 'New question'}
         </Link>
       </div>
 
@@ -165,7 +167,7 @@ function SidebarInner({ user }: SidebarProps) {
         {conversations && conversations.length > 0 ? (
           <>
             <div style={{ padding: '0 8px 6px', fontSize: 11, fontWeight: 600, color: 'var(--text-low)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-              Recent
+              {locale === 'ka' ? 'ბოლო' : 'Recent'}
             </div>
             {conversations.map(conv => {
               const isActive = conv.id === currentConvId
@@ -201,7 +203,7 @@ function SidebarInner({ user }: SidebarProps) {
         ) : (
           /* Empty state — gently prompt to ask the first question */
           <div style={{ padding: '8px 10px 0', color: 'var(--text-low)', fontSize: 12.5, lineHeight: 1.55 }}>
-            Ask a question to get started. Your conversations appear here.
+            {locale === 'ka' ? 'დასვი კითხვა — საუბრები აქ გამოჩნდება.' : 'Ask a question to get started. Your conversations appear here.'}
           </div>
         )}
       </div>
@@ -211,7 +213,7 @@ function SidebarInner({ user }: SidebarProps) {
         {connections && connections.length > 0 ? (
           <>
             <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-low)', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 8 }}>
-              Connected
+              {locale === 'ka' ? 'დაკავშირებული' : 'Connected'}
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
               {connections.map(conn => (
@@ -238,7 +240,7 @@ function SidebarInner({ user }: SidebarProps) {
             }}
           >
             <BankIcon />
-            Connect your bank
+            {locale === 'ka' ? 'ბანკის დაკავშირება' : 'Connect your bank'}
           </Link>
         )}
       </div>
