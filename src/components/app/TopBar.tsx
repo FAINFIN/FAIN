@@ -40,7 +40,7 @@ function SearchIcon() {
 
 export function TopBar({ user }: TopBarProps) {
   const router = useRouter()
-  const { locale } = useLocale()
+  const { t } = useLocale()
   const [currency, setCurrency] = useState<Currency>('GEL')
   const [query, setQuery] = useState('')
 
@@ -81,9 +81,9 @@ export function TopBar({ user }: TopBarProps) {
           value={query}
           onChange={e => setQuery(e.target.value)}
           onKeyDown={handleAskKeyDown}
-          placeholder={locale === 'ka' ? 'ჰკითხე Fain-ს…' : 'ASK FAIN ANYTHING…'}
+          placeholder={t.topbar.placeholder}
           autoComplete="off"
-          aria-label={locale === 'ka' ? 'ჰკითხე Fain-ს' : 'Ask Fain'}
+          aria-label={t.topbar.ariaLabel}
         />
         <span className="topbar-ask-shortcut">/</span>
       </form>

@@ -6,7 +6,8 @@ import { isSampleData } from '@/lib/db/sampleData'
 import Link from 'next/link'
 
 export function SampleDataBanner() {
-  const { locale } = useLocale()
+  const { t } = useLocale()
+  const b = t.sampleBanner
   const [show,      setShow]      = useState(false)
   const [dismissed, setDismissed] = useState(false)
 
@@ -29,10 +30,9 @@ export function SampleDataBanner() {
       color: 'var(--stone-11)',
     }}>
       <span>
-        {locale === 'ka'
-          ? <>📊 სადემო მონაცემებს ხედავ — <Link href="/connect-bank" style={{ color: 'var(--tan-9)', fontWeight: 600 }}>ბანკის დაკავშირება</Link></>
-          : <>📊 You're viewing sample data — <Link href="/connect-bank" style={{ color: 'var(--tan-9)', fontWeight: 600 }}>connect a real bank</Link> to see your own numbers.</>
-        }
+        {b.prefix}{' '}
+        <Link href="/connect-bank" style={{ color: 'var(--tan-9)', fontWeight: 600 }}>{b.linkText}</Link>
+        {b.suffix && <>{' '}{b.suffix}</>}
       </span>
       <button
         onClick={() => setDismissed(true)}

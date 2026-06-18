@@ -60,18 +60,18 @@ function SettingsIcon() {
 
 export function MobileNav() {
   const pathname = usePathname()
-  const { locale, t } = useLocale()
+  const { t } = useLocale()
 
   const items = [
-    { href: '/ask',          label: t.nav.ask,       icon: <AskIcon /> },
-    { href: '/dashboard',    label: t.nav.dashboard, icon: <DashIcon /> },
-    { href: '/transactions', label: locale === 'ka' ? 'ოპერ.' : 'Txns',  icon: <TxIcon /> },
-    { href: '/cash-flow',    label: locale === 'ka' ? 'ნაკადი' : 'Cash',  icon: <CashIcon /> },
-    { href: '/settings',     label: t.nav.settings,  icon: <SettingsIcon /> },
+    { href: '/ask',          label: t.nav.ask,         icon: <AskIcon /> },
+    { href: '/dashboard',    label: t.nav.dashboard,   icon: <DashIcon /> },
+    { href: '/transactions', label: t.nav.txnsShort,   icon: <TxIcon /> },
+    { href: '/cash-flow',    label: t.nav.cashShort,   icon: <CashIcon /> },
+    { href: '/settings',     label: t.nav.settings,    icon: <SettingsIcon /> },
   ]
 
   return (
-    <nav className="mobile-nav" aria-label={locale === 'ka' ? 'ნავიგაცია' : 'Navigation'}>
+    <nav className="mobile-nav" aria-label={t.nav.mobileLabel}>
       {items.map(item => {
         const active = pathname === item.href || (item.href !== '/ask' && pathname.startsWith(item.href))
         return (

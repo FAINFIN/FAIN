@@ -4,11 +4,14 @@ export const STRINGS = {
   en: {
     // Nav
     nav: {
-      dashboard:  'Dashboard',
-      cashFlow:   'Cash Flow',
-      ask:        'Ask Fain',
-      settings:   'Settings',
-      signOut:    'Sign out',
+      dashboard:    'Dashboard',
+      cashFlow:     'Cash Flow',
+      ask:          'Ask Fain',
+      settings:     'Settings',
+      signOut:      'Sign out',
+      txnsShort:    'Txns',
+      cashShort:    'Cash',
+      mobileLabel:  'Navigation',
     },
     // Dashboard
     dash: {
@@ -219,6 +222,32 @@ export const STRINGS = {
       connectBank:  'Connect your bank',
       signOut:      'Click to sign out',
     },
+    // TopBar
+    topbar: {
+      placeholder:  'ASK FAIN ANYTHING…',
+      ariaLabel:    'Ask Fain',
+    },
+    // Sample data banner
+    sampleBanner: {
+      prefix:   '📊 You\'re viewing sample data —',
+      linkText: 'connect a real bank',
+      suffix:   'to see your own numbers.',
+    },
+    // Settings page
+    settings: {
+      sources:        'Connected sources',
+      addSource:      '+ Add source',
+      noSources:      'No sources connected yet.',
+      sampleData:     'Sample Data',
+      accounts:       (n: number) => `${n} account${n !== 1 ? 's' : ''}`,
+      lastSync:       'last sync:',
+      disconnect:     'Disconnect',
+      language:       'Language',
+      dataPrivacy:    'Data & privacy',
+      privacyNote:    'All your financial data lives in this browser. Fain\'s servers never store your transactions, balances, or account numbers.',
+      clearData:      'Clear all local data',
+      version:        'v',
+    },
     // Misc
     loading:    'Loading…',
     liveLabel:  'Live',
@@ -226,11 +255,14 @@ export const STRINGS = {
 
   ka: {
     nav: {
-      dashboard:  'მთავარი',
-      cashFlow:   'ფულის ნაკადი',
-      ask:        'ჰკითხე Fain-ს',
-      settings:   'პარამეტრები',
-      signOut:    'გამოსვლა',
+      dashboard:    'მთავარი',
+      cashFlow:     'ფულის ნაკადი',
+      ask:          'ჰკითხე Fain-ს',
+      settings:     'პარამეტრები',
+      signOut:      'გამოსვლა',
+      txnsShort:    'ოპერ.',
+      cashShort:    'ნაკადი',
+      mobileLabel:  'ნავიგაცია',
     },
     dash: {
       title:        'მთავარი',
@@ -436,6 +468,32 @@ export const STRINGS = {
       connected:    'დაკავშირებული',
       connectBank:  'ბანკის დაკავშირება',
       signOut:      'გამოსვლა',
+    },
+    // TopBar
+    topbar: {
+      placeholder:  'ჰკითხე Fain-ს…',
+      ariaLabel:    'ჰკითხე Fain-ს',
+    },
+    // Sample data banner
+    sampleBanner: {
+      prefix:   '📊 სადემო მონაცემებს ხედავ —',
+      linkText: 'ბანკის დაკავშირება',
+      suffix:   '',
+    },
+    // Settings page
+    settings: {
+      sources:        'დაკავშირებული წყაროები',
+      addSource:      '+ წყაროს დამატება',
+      noSources:      'დაკავშირებული წყარო არ არის.',
+      sampleData:     'სადემო მონაცემები',
+      accounts:       (n: number) => `${n} ანგარიში`,
+      lastSync:       'ბოლო სინქრ.:',
+      disconnect:     'გათიშვა',
+      language:       'ენა',
+      dataPrivacy:    'მონაცემები და კონფიდენციალობა',
+      privacyNote:    'ყველა ფინანსური მონაცემი ამ ბრაუზერშია. Fain-ის სერვერები ვერ ხედავს შენს ოპერაციებს, ნაშთებს ან ანგარიშის ნომრებს.',
+      clearData:      'ყველა მონაცემის წაშლა',
+      version:        'ვერსია ',
     },
     loading:    'იტვირთება…',
     liveLabel:  'პირდაპირ',

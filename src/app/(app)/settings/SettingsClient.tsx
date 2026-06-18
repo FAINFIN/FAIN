@@ -13,6 +13,7 @@ import Link from 'next/link'
 export function SettingsClient() {
   const router    = useRouter()
   const { locale, t, setLocale } = useLocale()
+  const s = t.settings
   const [clearing, setClearing] = useState(false)
   const [isSample, setIsSample] = useState(false)
 
@@ -22,7 +23,7 @@ export function SettingsClient() {
   useEffect(() => { isSampleData().then(setIsSample) }, [])
 
   async function clearAllData() {
-    if (!confirm(locale === 'ka' ? 'ყველა მონაცემი წაიშლება. დარწმუნებული ხარ?' : 'This will delete all local data. Are you sure?')) return
+    if (!confirm(s.clearData + '?')) return
     setClearing(true)
     const db = getDb()
     await Promise.all([
@@ -39,12 +40,13 @@ export function SettingsClient() {
     const db = getDb()
     const conn = await db.connections.get(connectionId)
     if (!conn) return
-    // Delete related accounts + transactions
     const accountIds = conn.accountIds ?? []
     await db.transactions.where('accountId').anyOf(accountIds).delete()
     await db.accounts.where('id').anyOf(accountIds).delete()
     await db.connections.delete(connectionId)
   }
+
+  const dateLocale = locale === 'ka' ? 'ka-GE' : 'en-GB'
 
   return (
     <div className="app-content">
@@ -55,20 +57,20 @@ export function SettingsClient() {
       {/* Connected sources */}
       <Card>
         <CardHeader>
-          <CardTitle>{locale === 'ka' ? 'დაკავშირებული წყაროები' : 'Connected sources'}</CardTitle>
+          <CardTitle>{s.sources}</CardTitle>
           <Link href="/connect-bank" className="btn btn-primary btn-sm" style={{ fontSize: 12 }}>
-            {locale === 'ka' ? '+ წყაროს დამატება' : '+ Add source'}
+            {s.addSource}
           </Link>
         </CardHeader>
 
         {!connections?.length ? (
           <p style={{ color: 'var(--text-low)', fontSize: 14, margin: 0 }}>
-            {locale === 'ka' ? 'დაკავშირებული წყარო არ არის.' : 'No sources connected yet.'}
+            {s.noSources}
           </p>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {connections.map(conn => {
-              const accs = accounts?.filter(a => conn.accountIds?.includes(a.id)) ?? []
+              const accs   = accounts?.filter(a => conn.accountIds?.includes(a.id)) ?? []
               const isDemo = conn.id === 'sample-connection'
               return (
                 <div key={conn.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderBottom: '1px solid var(--border-subtle)' }}>
@@ -81,12 +83,12 @@ export function SettingsClient() {
                   </div>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontWeight: 600, fontSize: 14 }}>
-                      {isDemo ? (locale === 'ka' ? 'სადემო მონაცემები' : 'Sample Data') : (conn.provider ?? conn.id)}
+                      {isDemo ? s.sampleData : (conn.provider ?? conn.id)}
                     </div>
                     <div style={{ fontSize: 12, color: 'var(--text-low)' }}>
-                      {accs.length} {locale === 'ka' ? 'ანგარიში' : `account${accs.length !== 1 ? 's' : ''}`}
+                      {s.accounts(accs.length)}
                       {' · '}
-                      {locale === 'ka' ? 'ბოლო სინქრ.:' : 'last sync:'} {conn.lastSyncedAt ? new Date(conn.lastSyncedAt).toLocaleDateString(locale === 'ka' ? 'ka-GE' : 'en-GB') : '—'}
+                      {s.lastSync} {conn.lastSyncedAt ? new Date(conn.lastSyncedAt).toLocaleDateString(dateLocale) : '—'}
                     </div>
                   </div>
                   <button
@@ -94,7 +96,7 @@ export function SettingsClient() {
                     onClick={() => disconnectSource(conn.id)}
                     style={{ color: 'var(--neg)', fontSize: 12 }}
                   >
-                    {locale === 'ka' ? 'გათიშვა' : 'Disconnect'}
+                    {s.disconnect}
                   </button>
                 </div>
               )
@@ -105,7 +107,7 @@ export function SettingsClient() {
 
       {/* Language */}
       <Card>
-        <CardHeader><CardTitle>{locale === 'ka' ? 'ენა' : 'Language'}</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{s.language}</CardTitle></CardHeader>
         <div style={{ display: 'flex', gap: 10 }}>
           {(['en', 'ka'] as const).map(l => (
             <button
@@ -122,13 +124,10 @@ export function SettingsClient() {
 
       {/* Data + privacy */}
       <Card>
-        <CardHeader><CardTitle>{locale === 'ka' ? 'მონაცემები და კონფიდენციალობა' : 'Data & privacy'}</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{s.dataPrivacy}</CardTitle></CardHeader>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <p style={{ margin: 0, fontSize: 14, color: 'var(--text-low)', lineHeight: 1.6 }}>
-            {locale === 'ka'
-              ? 'ყველა ფინანსური მონაცემი ინახება მხოლოდ ამ მოწყობილობაზე — IndexedDB-ში. Fain-ის სერვერები ვერ ხედავს შენს ოპერაციებს.'
-              : 'All financial data is stored only on this device — in your browser\'s IndexedDB. Fain\'s servers never see your individual transactions or account balances.'
-            }
+            {s.privacyNote}
           </p>
           <div>
             <Button
@@ -138,7 +137,7 @@ export function SettingsClient() {
               onClick={clearAllData}
               style={{ color: 'var(--neg)', borderColor: 'var(--neg)' }}
             >
-              {locale === 'ka' ? 'ყველა მონაცემის წაშლა' : 'Clear all local data'}
+              {s.clearData}
             </Button>
           </div>
         </div>
@@ -146,7 +145,7 @@ export function SettingsClient() {
 
       {/* App version */}
       <p style={{ fontSize: 12, color: 'var(--text-low)', marginTop: 4 }}>
-        Fain beta · {locale === 'ka' ? 'ვერსია' : 'v'}0.1.0
+        Fain beta · {s.version}0.1.0
       </p>
     </div>
   )
