@@ -1,10 +1,12 @@
 /**
- * Better Auth configuration — Drizzle adapter + Google OAuth + magic link
- * + two-factor TOTP + phone/SMS (Twilio)
+ * Better Auth configuration
  *
- * Passkey (WebAuthn) requires a newer better-auth version; will be added later.
- * For now biometrics are handled at the OS level via passkey prompts on supported
- * browsers (Chrome/Safari prompt Touch ID when a passkey is stored).
+ * Auth methods (priority order):
+ *  1. Google OAuth / Microsoft OAuth  — 1-click, highest conversion
+ *  2. Email + Password + OTP verify   — standard SaaS path
+ *  3. Magic link                      — fallback / internal tooling
+ *
+ * Security plugins: twoFactor (TOTP), phoneNumber (SMS/Twilio)
  */
 import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
@@ -14,32 +16,85 @@ import { phoneNumber } from 'better-auth/plugins/phone-number'
 import { db } from '@/lib/db/client.server'
 import * as schema from '@/lib/db/schema.server'
 
-// ── Resend magic-link email ───────────────────────────────────────────────
-async function sendMagicLinkEmail(email: string, url: string) {
+// ── Shared Resend sender ──────────────────────────────────────────────────
+async function sendEmail(to: string, subject: string, html: string) {
   const { Resend } = await import('resend')
   const resend = new Resend(process.env.RESEND_API_KEY)
   await resend.emails.send({
-    from:    process.env.RESEND_FROM_EMAIL ?? 'hello@fain.ge',
-    to:      email,
-    subject: 'Sign in to Fain',
-    html: `
-      <div style="font-family:system-ui,sans-serif;max-width:480px;margin:0 auto;padding:40px 24px;color:#29261b">
-        <div style="font-size:26px;font-weight:700;letter-spacing:-0.03em;margin-bottom:28px">
-          fain<span style="color:#FD5400">.</span>
-        </div>
-        <h2 style="margin:0 0 12px;font-size:20px;font-weight:700">Your sign-in link</h2>
-        <p style="color:#6b6457;line-height:1.6;margin:0 0 28px">
-          Click below to sign in to Fain. This link expires in 15 minutes and can only be used once.
-        </p>
-        <a href="${url}" style="display:inline-block;padding:14px 28px;background:#FD5400;color:#fff;font-weight:700;font-size:15px;text-decoration:none;border-radius:12px">
-          Sign in to Fain
-        </a>
-        <p style="margin-top:28px;color:#8a8377;font-size:13px">
-          If you didn't request this, you can safely ignore it.
-        </p>
-      </div>
-    `,
+    from: process.env.RESEND_FROM_EMAIL ?? 'Fain <hello@fain.ge>',
+    to,
+    subject,
+    html,
   })
+}
+
+function emailShell(body: string) {
+  return `
+    <div style="font-family:system-ui,sans-serif;max-width:480px;margin:0 auto;padding:40px 24px;color:#29261b">
+      <div style="font-size:26px;font-weight:700;letter-spacing:-0.03em;margin-bottom:28px">
+        fain<span style="color:#FD5400">.</span>
+      </div>
+      ${body}
+      <p style="margin-top:28px;color:#8a8377;font-size:13px">
+        If you didn't request this, you can safely ignore this email.
+      </p>
+    </div>
+  `
+}
+
+// ── Email: OTP verification code (registration) ───────────────────────────
+async function sendVerificationEmail(email: string, url: string) {
+  // Better Auth sends a verification link by default; we redirect to OTP entry page
+  // The URL contains the token — we strip it and send just the link.
+  await sendEmail(
+    email,
+    'Verify your Fain account',
+    emailShell(`
+      <h2 style="margin:0 0 12px;font-size:20px;font-weight:700">Verify your email</h2>
+      <p style="color:#6b6457;line-height:1.6;margin:0 0 28px">
+        Click below to verify your email address and activate your Fain account.
+        This link expires in 1 hour.
+      </p>
+      <a href="${url}" style="display:inline-block;padding:14px 28px;background:#FD5400;color:#fff;font-weight:700;font-size:15px;text-decoration:none;border-radius:12px">
+        Verify email
+      </a>
+    `)
+  )
+}
+
+// ── Email: password reset ─────────────────────────────────────────────────
+async function sendPasswordResetEmail(email: string, url: string) {
+  await sendEmail(
+    email,
+    'Reset your Fain password',
+    emailShell(`
+      <h2 style="margin:0 0 12px;font-size:20px;font-weight:700">Reset your password</h2>
+      <p style="color:#6b6457;line-height:1.6;margin:0 0 28px">
+        We received a request to reset the password for your Fain account.
+        This link expires in 1 hour and can only be used once.
+      </p>
+      <a href="${url}" style="display:inline-block;padding:14px 28px;background:#FD5400;color:#fff;font-weight:700;font-size:15px;text-decoration:none;border-radius:12px">
+        Reset password
+      </a>
+    `)
+  )
+}
+
+// ── Email: magic link (fallback) ──────────────────────────────────────────
+async function sendMagicLinkEmail(email: string, url: string) {
+  await sendEmail(
+    email,
+    'Sign in to Fain',
+    emailShell(`
+      <h2 style="margin:0 0 12px;font-size:20px;font-weight:700">Your sign-in link</h2>
+      <p style="color:#6b6457;line-height:1.6;margin:0 0 28px">
+        Click below to sign in to Fain. This link expires in 15 minutes and can only be used once.
+      </p>
+      <a href="${url}" style="display:inline-block;padding:14px 28px;background:#FD5400;color:#fff;font-weight:700;font-size:15px;text-decoration:none;border-radius:12px">
+        Sign in to Fain
+      </a>
+    `)
+  )
 }
 
 // ── SMS via Twilio ────────────────────────────────────────────────────────
@@ -100,9 +155,21 @@ export const auth = betterAuth({
     cookieCache: { enabled: true, maxAge: 30 * 24 * 60 * 60 }, // 30 days
   },
 
-  // Email/password disabled — we use magic links + OAuth only
+  // Email + password — primary email path (OTP email verification on signup)
   emailAndPassword: {
-    enabled: false,
+    enabled: true,
+    requireEmailVerification: true,
+    sendResetPassword: async ({ user, url }: { user: { email: string }, url: string }) =>
+      sendPasswordResetEmail(user.email, url),
+    resetPasswordTokenExpiresIn: 60 * 60, // 1 hour
+  },
+
+  emailVerification: {
+    sendVerificationEmail: async ({ user, url }: { user: { email: string }, url: string }) =>
+      sendVerificationEmail(user.email, url),
+    sendOnSignUp: true,
+    autoSignInAfterVerification: true,
+    expiresIn: 60 * 60, // 1 hour
   },
 
   socialProviders: {

@@ -1,10 +1,12 @@
 'use client'
 
-import { useState, FormEvent } from 'react'
+import { useState, FormEvent, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { authClient } from '@/lib/auth/client'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import { useLocale } from '@/lib/i18n/LocaleContext'
+
+// ─── Icons ────────────────────────────────────────────────────────────────────
 
 function GoogleIcon() {
   return (
@@ -17,137 +19,289 @@ function GoogleIcon() {
   )
 }
 
-function ShieldIcon() {
+function MicrosoftIcon() {
   return (
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--pos)', flexShrink: 0 }}>
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+    <svg width="17" height="17" viewBox="0 0 21 21" aria-hidden="true">
+      <rect x="1"  y="1"  width="9" height="9" fill="#F25022"/>
+      <rect x="11" y="1"  width="9" height="9" fill="#7FBA00"/>
+      <rect x="1"  y="11" width="9" height="9" fill="#00A4EF"/>
+      <rect x="11" y="11" width="9" height="9" fill="#FFB900"/>
     </svg>
   )
 }
 
-// ── Step 1: email + name → send magic link ────────────────────────
-function StepAccount({
-  onSent,
+function LockIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--text-low)', flexShrink: 0 }}>
+      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+    </svg>
+  )
+}
+
+function CheckIcon({ ok }: { ok: boolean }) {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+      style={{ color: ok ? 'var(--pos)' : 'var(--text-low)', flexShrink: 0, transition: 'color .15s' }}>
+      <polyline points="20 6 9 17 4 12"/>
+    </svg>
+  )
+}
+
+// ─── Password strength rules ──────────────────────────────────────────────────
+
+const rules = [
+  { label: '8+ characters',      test: (p: string) => p.length >= 8 },
+  { label: 'Number',             test: (p: string) => /\d/.test(p) },
+  { label: 'Uppercase letter',   test: (p: string) => /[A-Z]/.test(p) },
+  { label: 'Special character',  test: (p: string) => /[^A-Za-z0-9]/.test(p) },
+]
+
+// ─── Step 1: Create account ───────────────────────────────────────────────────
+
+function StepCreate({
+  onVerify,
   loading,
   setLoading,
 }: {
-  onSent: (email: string) => void
+  onVerify: (email: string) => void
   loading: boolean
   setLoading: (v: boolean) => void
 }) {
-  const { t, locale } = useLocale()
-  const [email, setEmail] = useState('')
-  const [name,  setName]  = useState('')
-  const [error, setError] = useState('')
+  const router = useRouter()
+  const [name,     setName]     = useState('')
+  const [email,    setEmail]    = useState('')
+  const [password, setPassword] = useState('')
+  const [showPw,   setShowPw]   = useState(false)
+  const [provider, setProvider] = useState<string | null>(null)
+  const [error,    setError]    = useState('')
 
-  async function handleGoogle() {
+  const passOk = rules.every(r => r.test(password))
+
+  async function handleSocial(p: 'google' | 'microsoft') {
     setLoading(true)
+    setProvider(p)
     setError('')
-    await authClient.signIn.social({ provider: 'google', callbackURL: '/connect-bank' })
+    await authClient.signIn.social({ provider: p, callbackURL: '/onboarding' })
   }
 
-  async function handleEmail(e: FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault()
+    if (!passOk) { setError('Please meet all password requirements.'); return }
     setLoading(true)
+    setProvider('email')
     setError('')
-    const res = await authClient.signIn.magicLink({ email, callbackURL: '/connect-bank' })
+
+    const res = await authClient.signUp.email({
+      name,
+      email,
+      password,
+      callbackURL: '/onboarding',
+    })
     setLoading(false)
+
     if (res.error) {
-      setError(res.error.message ?? (locale === 'ka' ? 'შეცდომა' : 'Something went wrong'))
+      setError(res.error.message ?? 'Something went wrong. Please try again.')
     } else {
-      onSent(email)
+      // Email verification required — move to OTP step
+      onVerify(email)
     }
   }
 
   return (
-    <>
-      <Button
-        variant="outline"
-        onClick={handleGoogle}
-        loading={loading}
-        style={{ width: '100%', padding: '12px 18px', gap: 10 }}
-        type="button"
-      >
-        <GoogleIcon />
-        {t.auth.continueGoogle}
-      </Button>
+    <div className="form" style={{ marginTop: 26 }}>
 
-      <div className="or">{t.auth.orWithEmail}</div>
+      {/* ── Social providers ── */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <Button
+          variant="outline"
+          onClick={() => handleSocial('google')}
+          loading={loading && provider === 'google'}
+          disabled={loading && provider !== 'google'}
+          style={{ width: '100%', padding: '12px 18px', gap: 10, justifyContent: 'center' }}
+          type="button"
+        >
+          <GoogleIcon />
+          Continue with Google
+        </Button>
 
-      <form onSubmit={handleEmail} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <Button
+          variant="outline"
+          onClick={() => handleSocial('microsoft')}
+          loading={loading && provider === 'microsoft'}
+          disabled={loading && provider !== 'microsoft'}
+          style={{ width: '100%', padding: '12px 18px', gap: 10, justifyContent: 'center' }}
+          type="button"
+        >
+          <MicrosoftIcon />
+          Continue with Microsoft
+        </Button>
+      </div>
+
+      <div className="or">or with email</div>
+
+      {/* ── Email + password ── */}
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         <Input
-          label={t.auth.fullName}
+          label="Full name"
           type="text"
           value={name}
           onChange={e => setName(e.target.value)}
-          placeholder={locale === 'ka' ? 'ნინო ბერიძე' : 'Nino Beridze'}
+          placeholder="Nino Beridze"
           autoComplete="name"
+          required
         />
         <Input
-          label={t.auth.workEmail}
+          label="Work email"
           type="email"
           value={email}
           onChange={e => setEmail(e.target.value)}
-          placeholder={locale === 'ka' ? 'nino@თქვენი-კომპანია.ge' : 'nino@yourcompany.ge'}
+          placeholder="nino@yourcompany.ge"
           autoComplete="email"
           required
         />
-        <p className="hint">{t.auth.magicLinkHint}</p>
+        <div>
+          <Input
+            label="Password"
+            type={showPw ? 'text' : 'password'}
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            placeholder="Create a strong password"
+            autoComplete="new-password"
+            required
+          />
+          {/* Password requirements */}
+          {password.length > 0 && (
+            <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 5 }}>
+              {rules.map(r => (
+                <div key={r.label} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text-low)' }}>
+                  <CheckIcon ok={r.test(password)} />
+                  {r.label}
+                </div>
+              ))}
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={() => setShowPw(v => !v)}
+            style={{ marginTop: 6, fontSize: 12, color: 'var(--text-low)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+          >
+            {showPw ? 'Hide password' : 'Show password'}
+          </button>
+        </div>
+
         {error && <p style={{ color: 'var(--neg)', fontSize: 13, margin: 0 }}>{error}</p>}
-        <Button variant="primary" size="lg" type="submit" loading={loading} style={{ width: '100%' }}>
-          {t.auth.continue}
+
+        <Button
+          variant="primary"
+          size="lg"
+          type="submit"
+          loading={loading && provider === 'email'}
+          disabled={loading && provider !== 'email'}
+          style={{ width: '100%' }}
+        >
+          Create account
         </Button>
+
         <p className="legal">
-          {t.auth.termsPrefix}
-          <a href="#">{t.auth.terms}</a>
-          {t.auth.and}
-          <a href="#">{t.auth.privacy}</a>.
+          By continuing you agree to our{' '}
+          <a href="/terms">Terms of Service</a> and{' '}
+          <a href="/privacy">Privacy Policy</a>.
         </p>
       </form>
-    </>
+
+      {/* ── Trust line ── */}
+      <div className="auth-trust">
+        <LockIcon />
+        <span>Protected with 2FA and end-to-end encryption. We never store bank credentials.</span>
+      </div>
+
+      {/* ── Already have an account ── */}
+      <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--text-low)', margin: '4px 0 0' }}>
+        Already have an account?{' '}
+        <button
+          type="button"
+          onClick={() => router.push('/login')}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--tan-11)', fontWeight: 600, padding: 0, fontSize: 'inherit' }}
+        >
+          Sign in
+        </button>
+      </p>
+    </div>
   )
 }
 
-// ── Sent state ────────────────────────────────────────────────────
-function StepSent({ email }: { email: string }) {
-  const { locale } = useLocale()
-  return (
-    <div style={{ textAlign: 'center', padding: '32px 0' }}>
-      <div style={{ fontSize: 40, marginBottom: 12 }}>📬</div>
-      <p className="lead" style={{ margin: 0 }}>
-        {locale === 'ka' ? 'შეამოწმე ელ-ფოსტა.' : 'Check your email.'}
-      </p>
-      <p className="hint" style={{ marginTop: 8 }}>
-        {locale === 'ka'
-          ? <>გამოგიგზავნეთ ბმული <strong>{email}</strong>-ზე. 15 წუთში ვადა გასდის.</>
-          : <>We sent a sign-in link to <strong>{email}</strong>. It expires in 15 minutes.</>
-        }
-      </p>
+// ─── Step 2: Verify email ─────────────────────────────────────────────────────
 
-      {/* Security trust pill */}
-      <div className="auth-trust" style={{ justifyContent: 'center', marginTop: 24 }}>
-        <ShieldIcon />
-        <span>Your account is secured. You'll set up 2FA after signing in.</span>
+function StepVerify({ email, onBack }: { email: string; onBack: () => void }) {
+  const [resent,   setResent]   = useState(false)
+  const [loading,  setLoading]  = useState(false)
+
+  async function handleResend() {
+    setLoading(true)
+    await authClient.sendVerificationEmail({ email, callbackURL: '/onboarding' })
+    setLoading(false)
+    setResent(true)
+    setTimeout(() => setResent(false), 30_000)
+  }
+
+  return (
+    <div className="form" style={{ marginTop: 26 }}>
+      <div style={{ textAlign: 'center', padding: '16px 0 24px' }}>
+        <div style={{ fontSize: 42, marginBottom: 14 }}>📬</div>
+        <p className="lead" style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 600 }}>
+          Check your email
+        </p>
+        <p className="hint" style={{ margin: 0 }}>
+          We sent a verification link to <strong>{email}</strong>.
+          Click the link to activate your account.
+        </p>
+        <p className="hint" style={{ marginTop: 6, fontSize: 12 }}>
+          Link expires in 1 hour. Check your spam folder if it doesn't arrive.
+        </p>
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <Button
+          variant="outline"
+          size="lg"
+          onClick={handleResend}
+          loading={loading}
+          disabled={resent}
+          style={{ width: '100%' }}
+          type="button"
+        >
+          {resent ? '✓ Link resent' : 'Resend verification link'}
+        </Button>
+
+        <button
+          type="button"
+          onClick={onBack}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-low)', fontSize: 13, padding: '4px 0' }}
+        >
+          ← Use a different email
+        </button>
       </div>
     </div>
   )
 }
 
-// ── Root component ─────────────────────────────────────────────────
+// ─── Root component ───────────────────────────────────────────────────────────
+
 export function RegisterForm() {
-  const [step,    setStep]    = useState<'account' | 'sent'>('account')
-  const [email,   setEmail]   = useState('')
+  const [step,  setStep]  = useState<'create' | 'verify'>('create')
+  const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
 
-  if (step === 'sent') return <div className="form" style={{ marginTop: 26 }}><StepSent email={email} /></div>
+  if (step === 'verify') {
+    return <StepVerify email={email} onBack={() => setStep('create')} />
+  }
 
   return (
-    <div className="form" style={{ marginTop: 26 }}>
-      <StepAccount
-        loading={loading}
-        setLoading={setLoading}
-        onSent={(e) => { setEmail(e); setStep('sent') }}
-      />
-    </div>
+    <StepCreate
+      loading={loading}
+      setLoading={setLoading}
+      onVerify={(e) => { setEmail(e); setStep('verify') }}
+    />
   )
 }

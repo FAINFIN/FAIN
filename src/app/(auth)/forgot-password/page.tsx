@@ -1,10 +1,10 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { LoginForm } from './LoginForm'
+import { ForgotPasswordForm } from './ForgotPasswordForm'
 
-export const metadata: Metadata = { title: 'Log in' }
+export const metadata: Metadata = { title: 'Reset password' }
 
-export default function LoginPage() {
+export default function ForgotPasswordPage() {
   return (
     <div className="auth-shell">
       <div className="auth-left">
@@ -12,13 +12,15 @@ export default function LoginPage() {
           <Link className="brand" href="/">
             <span className="word">fain<span className="fstop">.</span></span>
           </Link>
-          <span className="alt">No account? <Link href="/register">Get started</Link></span>
+          <span className="alt">
+            Remember it? <Link href="/login">Sign in</Link>
+          </span>
         </div>
 
         <div className="auth-main">
-          <h2 className="serif">Welcome <span className="em">back</span>.</h2>
-          <p className="lead">Sign in to your Fain account.</p>
-          <LoginForm />
+          <h2 className="serif">Reset your <span className="em">password</span>.</h2>
+          <p className="lead">Enter your email and we'll send you a secure link.</p>
+          <ForgotPasswordForm />
         </div>
 
         <div className="auth-foot">
@@ -31,13 +33,13 @@ export default function LoginPage() {
 
       <div className="auth-right" aria-hidden="true">
         <div className="brandside">
-          <span className="eyebrow">Your numbers, instantly</span>
-          <h3 className="serif">Everything you need to <span className="em">know</span>, without the spreadsheet.</h3>
+          <span className="eyebrow">Secure by design</span>
+          <h3 className="serif">Your data stays <span className="em">yours</span>.</h3>
           <div className="side-note">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/>
             </svg>
-            No password to remember. Ever.
+            Reset links expire in 1 hour and work only once.
           </div>
         </div>
       </div>
