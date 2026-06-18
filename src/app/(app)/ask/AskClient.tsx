@@ -99,8 +99,38 @@ function getGreeting(name: string | null | undefined): string {
 }
 
 // ─── KPI row ───────────────────────────────────────────────────────
+function fmtGel(n: number): string {
+  if (n >= 1_000_000) return `₾${(n / 1_000_000).toFixed(1)}M`
+  if (n >= 1_000)     return `₾${Math.round(n / 1_000)}k`
+  return `₾${Math.round(n)}`
+}
+
 function KpiRow({ hasData }: { hasData: boolean }) {
-  const kpi = SAMPLE_KPI // swap with real data when connected
+  const live = useLiveQuery(async () => {
+    if (!hasData) return null
+    const db       = getDb()
+    const accounts = await db.accounts.toArray()
+    const cash     = accounts.reduce((s, a) => s + a.balance, 0)
+
+    const now            = new Date()
+    const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3, 1)
+    const txs            = await db.transactions
+      .where('date').between(threeMonthsAgo, now, true, true)
+      .toArray()
+
+    const totalExpenses = txs.filter(t => t.type === 'debit').reduce((s, t)  => s + t.amount, 0)
+    const totalIncome   = txs.filter(t => t.type === 'credit').reduce((s, t) => s + t.amount, 0)
+    const avgBurn       = totalExpenses / 3
+    const avgMrr        = totalIncome   / 3
+    const runway        = avgBurn > 0 ? Math.floor(cash / avgBurn) : 0
+
+    return { cash, avgBurn, runway, avgMrr }
+  }, [hasData])
+
+  const kpi = hasData && live
+    ? { cashOnHand: fmtGel(live.cash), netBurn: fmtGel(live.avgBurn), runway: `${live.runway} mo`, mrr: fmtGel(live.avgMrr) }
+    : SAMPLE_KPI
+
   return (
     <div className="kpi-row">
       <div className="kpi-tile">
@@ -323,7 +353,7 @@ function AskClientInner() {
             {/* Status line */}
             <p className="ask-subhead">
               {hasRealData
-                ? 'Your cash is healthy — 14 months of runway. Ask me anything, or pick up where you left off.'
+                ? 'Your accounts are connected. Ask me anything, or pick up where you left off.'
                 : 'Ask me anything about your finances, or pick up where you left off.'}
             </p>
 
