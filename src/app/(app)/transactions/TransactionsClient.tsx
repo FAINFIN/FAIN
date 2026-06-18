@@ -49,7 +49,7 @@ function CatDot({ cat }: { cat: string }) {
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 export function TransactionsClient() {
-  const { locale } = useLocale()
+  const { locale, t } = useLocale()
 
   const [search,  setSearch]  = useState('')
   const [typeF,   setTypeF]   = useState<'all' | 'credit' | 'debit'>('all')
@@ -99,16 +99,16 @@ export function TransactionsClient() {
   const resetPage = () => setPage(1)
 
   if (result === undefined) {
-    return <div className="app-content"><p style={{ color: 'var(--text-low)' }}>Loading…</p></div>
+    return <div className="app-content"><p style={{ color: 'var(--text-low)' }}>{t.loading}</p></div>
   }
 
   if (!result.txs.length) {
     return (
       <div className="app-content" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', gap: 16, textAlign: 'center' }}>
         <div className="mark" style={{ width: 56, height: 56, fontSize: 24 }}>f</div>
-        <h2 className="serif" style={{ margin: 0 }}>No transactions yet</h2>
-        <p style={{ margin: 0, color: 'var(--text-low)' }}>Connect your bank to see your transactions here.</p>
-        <Link href="/connect-bank" className="btn btn-primary" style={{ marginTop: 8 }}>Connect bank</Link>
+        <h2 className="serif" style={{ margin: 0 }}>{t.transactions.empty}</h2>
+        <p style={{ margin: 0, color: 'var(--text-low)' }}>{t.transactions.emptySub}</p>
+        <Link href="/connect-bank" className="btn btn-primary" style={{ marginTop: 8 }}>{t.transactions.connectBank}</Link>
       </div>
     )
   }
@@ -116,7 +116,7 @@ export function TransactionsClient() {
   return (
     <div className="app-content">
       <div className="app-header">
-        <h1 className="page-title">Transactions</h1>
+        <h1 className="page-title">{t.transactions.title}</h1>
         <div style={{ fontSize: 13, color: 'var(--text-low)', background: 'var(--surface-secondary)', padding: '4px 12px', borderRadius: 99 }}>
           {filtered.length} of {result.txs.length}
         </div>
@@ -129,7 +129,7 @@ export function TransactionsClient() {
           type="text"
           value={search}
           onChange={e => { setSearch(e.target.value); resetPage() }}
-          placeholder="Search transactions…"
+          placeholder={t.transactions.search}
           style={{ flex: '1 1 200px', padding: '8px 14px', border: '1.5px solid var(--border-subtle)', borderRadius: 10, fontSize: 14, outline: 'none', background: 'var(--surface-primary)', color: 'var(--text-primary)' }}
         />
 
@@ -139,9 +139,9 @@ export function TransactionsClient() {
           onChange={e => { setTypeF(e.target.value as typeof typeF); resetPage() }}
           style={{ padding: '8px 14px', border: '1.5px solid var(--border-subtle)', borderRadius: 10, fontSize: 14, background: 'var(--surface-primary)', color: 'var(--text-primary)', cursor: 'pointer' }}
         >
-          <option value="all">All types</option>
-          <option value="credit">Income</option>
-          <option value="debit">Expense</option>
+          <option value="all">{t.transactions.allTypes}</option>
+          <option value="credit">{t.transactions.income}</option>
+          <option value="debit">{t.transactions.expense}</option>
         </select>
 
         {/* Category */}
@@ -150,7 +150,7 @@ export function TransactionsClient() {
           onChange={e => { setCatF(e.target.value); resetPage() }}
           style={{ padding: '8px 14px', border: '1.5px solid var(--border-subtle)', borderRadius: 10, fontSize: 14, background: 'var(--surface-primary)', color: 'var(--text-primary)', cursor: 'pointer' }}
         >
-          <option value="all">All categories</option>
+          <option value="all">{t.transactions.allCats}</option>
           {result.categories.map(c => <option key={c} value={c}>{c}</option>)}
         </select>
 
@@ -160,18 +160,18 @@ export function TransactionsClient() {
           onChange={e => { setMonths(Number(e.target.value)); resetPage() }}
           style={{ padding: '8px 14px', border: '1.5px solid var(--border-subtle)', borderRadius: 10, fontSize: 14, background: 'var(--surface-primary)', color: 'var(--text-primary)', cursor: 'pointer' }}
         >
-          <option value={1}>Last month</option>
-          <option value={3}>Last 3 months</option>
-          <option value={6}>Last 6 months</option>
-          <option value={12}>Last 12 months</option>
-          <option value={24}>Last 24 months</option>
+          <option value={1}>{t.transactions.lastMonth}</option>
+          <option value={3}>{t.transactions.last3}</option>
+          <option value={6}>{t.transactions.last6}</option>
+          <option value={12}>{t.transactions.last12}</option>
+          <option value={24}>{t.transactions.last24}</option>
         </select>
       </div>
 
       {/* ── Transaction list ── */}
       <div style={{ background: 'var(--surface-primary)', borderRadius: 14, border: '1px solid var(--border-subtle)', overflow: 'hidden' }}>
         {visible.length === 0 ? (
-          <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-low)' }}>No matching transactions</div>
+          <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-low)' }}>{t.transactions.noResults}</div>
         ) : (
           visible.map((tx, i) => (
             <div
@@ -222,7 +222,7 @@ export function TransactionsClient() {
             onClick={() => setPage(p => p - 1)}
             style={{ padding: '6px 14px', borderRadius: 8, border: '1.5px solid var(--border-subtle)', background: 'var(--surface-primary)', color: 'var(--text-primary)', cursor: page === 1 ? 'not-allowed' : 'pointer', opacity: page === 1 ? 0.4 : 1, fontWeight: 600, fontSize: 13 }}
           >
-            ← Prev
+            {t.transactions.prev}
           </button>
           <span style={{ padding: '6px 14px', fontSize: 13, color: 'var(--text-low)' }}>
             {page} / {totalPages}
@@ -232,7 +232,7 @@ export function TransactionsClient() {
             onClick={() => setPage(p => p + 1)}
             style={{ padding: '6px 14px', borderRadius: 8, border: '1.5px solid var(--border-subtle)', background: 'var(--surface-primary)', color: 'var(--text-primary)', cursor: page === totalPages ? 'not-allowed' : 'pointer', opacity: page === totalPages ? 0.4 : 1, fontWeight: 600, fontSize: 13 }}
           >
-            Next →
+            {t.transactions.next}
           </button>
         </div>
       )}

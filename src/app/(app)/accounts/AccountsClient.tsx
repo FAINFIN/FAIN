@@ -27,15 +27,9 @@ function ProviderLogo({ provider }: { provider: string }) {
 }
 
 type AccountType = 'checking' | 'savings' | 'credit' | 'loan'
-const TYPE_LABEL: Record<AccountType, string> = {
-  checking: 'Checking',
-  savings:  'Savings',
-  credit:   'Credit',
-  loan:     'Loan',
-}
 
 export function AccountsClient() {
-  const { locale } = useLocale()
+  const { locale, t } = useLocale()
   const fmt = (n: number, ccy = 'GEL') => formatCurrency(n, { currency: ccy as 'GEL' | 'USD' | 'EUR', locale })
 
   const result = useLiveQuery(async () => {
@@ -46,16 +40,16 @@ export function AccountsClient() {
   })
 
   if (result === undefined) {
-    return <div className="app-content"><p style={{ color: 'var(--text-low)' }}>Loading…</p></div>
+    return <div className="app-content"><p style={{ color: 'var(--text-low)' }}>{t.loading}</p></div>
   }
 
   if (!result.accounts.length) {
     return (
       <div className="app-content" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', gap: 16, textAlign: 'center' }}>
         <div className="mark" style={{ width: 56, height: 56, fontSize: 24 }}>f</div>
-        <h2 className="serif" style={{ margin: 0 }}>No accounts connected</h2>
-        <p style={{ margin: 0, color: 'var(--text-low)' }}>Connect your bank to see your accounts here.</p>
-        <Link href="/connect-bank" className="btn btn-primary" style={{ marginTop: 8 }}>Connect bank</Link>
+        <h2 className="serif" style={{ margin: 0 }}>{t.accounts.empty}</h2>
+        <p style={{ margin: 0, color: 'var(--text-low)' }}>{t.accounts.emptySub}</p>
+        <Link href="/connect-bank" className="btn btn-primary" style={{ marginTop: 8 }}>{t.accounts.connectBank}</Link>
       </div>
     )
   }
@@ -76,20 +70,20 @@ export function AccountsClient() {
   return (
     <div className="app-content">
       <div className="app-header">
-        <h1 className="page-title">Accounts</h1>
+        <h1 className="page-title">{t.accounts.title}</h1>
         <Link href="/connect-bank" className="btn btn-outline" style={{ fontSize: 13, padding: '6px 16px' }}>
-          + Add bank
+          {t.accounts.addBank}
         </Link>
       </div>
 
       {/* Total */}
       <div style={{ background: 'var(--surface-dark)', color: 'var(--text-inverted)', borderRadius: 16, padding: '24px 28px', marginBottom: 20 }}>
-        <div style={{ fontSize: 13, opacity: 0.7, marginBottom: 6 }}>Total balance (GEL)</div>
+        <div style={{ fontSize: 13, opacity: 0.7, marginBottom: 6 }}>{t.accounts.totalLabel}</div>
         <div style={{ fontSize: 36, fontWeight: 700, fontFamily: 'var(--font-serif)', letterSpacing: '-0.03em' }}>
           {fmt(totalGel)}
         </div>
         <div style={{ fontSize: 13, opacity: 0.6, marginTop: 6 }}>
-          {accounts.length} account{accounts.length !== 1 ? 's' : ''} · {connections.length} connection{connections.length !== 1 ? 's' : ''}
+          {t.accounts.accountCount(accounts.length)} · {t.accounts.connCount(connections.length)}
         </div>
       </div>
 
@@ -123,7 +117,7 @@ export function AccountsClient() {
                   color: acc.type === 'credit' ? '#E65100' : acc.type === 'savings' ? '#2E7D32' : 'var(--text-low)',
                   fontSize: 11, fontWeight: 700, flexShrink: 0,
                 }}>
-                  {TYPE_LABEL[acc.type as AccountType] ?? acc.type}
+                  {t.accounts.typeLabels[acc.type as AccountType] ?? acc.type}
                 </div>
 
                 {/* Name */}
@@ -132,7 +126,7 @@ export function AccountsClient() {
                     {acc.name}
                   </div>
                   <div style={{ fontSize: 12, color: 'var(--text-low)', marginTop: 2 }}>
-                    Updated {acc.balanceUpdatedAt.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
+                    {t.accounts.updated} {acc.balanceUpdatedAt.toLocaleDateString(locale === 'ka' ? 'ka-GE' : 'en-GB', { day: '2-digit', month: 'short' })}
                   </div>
                 </div>
 
@@ -151,8 +145,8 @@ export function AccountsClient() {
 
       {/* Disconnect note */}
       <p style={{ fontSize: 12, color: 'var(--text-low)', marginTop: 24, textAlign: 'center' }}>
-        To disconnect a bank, go to{' '}
-        <Link href="/settings" style={{ color: 'var(--tan-9)' }}>Settings</Link>.
+        {t.accounts.settingsNote}{' '}
+        <Link href="/settings" style={{ color: 'var(--tan-9)' }}>{t.accounts.settingsLink}</Link>.
       </p>
     </div>
   )
