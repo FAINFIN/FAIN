@@ -3,6 +3,7 @@ import { headers } from 'next/headers'
 import { auth } from '@/lib/auth/config'
 import { Sidebar } from '@/components/app/Sidebar'
 import { TopBar } from '@/components/app/TopBar'
+import { MobileNav } from '@/components/app/MobileNav'
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
 import { UserProvider } from '@/lib/auth/UserContext'
 
@@ -28,6 +29,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             </ErrorBoundary>
           </main>
         </div>
+        <MobileNav />
       </div>
     </UserProvider>
   )
