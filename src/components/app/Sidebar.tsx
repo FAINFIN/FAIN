@@ -98,7 +98,8 @@ function BankPill({ name }: { name: string }) {
 function SidebarInner({ user }: SidebarProps) {
   const router   = useRouter()
   const pathname = usePathname()
-  const { locale } = useLocale()
+  const { t } = useLocale()
+  const s = t.sidebar
 
   // Live data from IndexedDB
   const conversations = useLiveQuery(
@@ -158,7 +159,7 @@ function SidebarInner({ user }: SidebarProps) {
           }}
         >
           <PlusIcon />
-          {locale === 'ka' ? 'ახალი კითხვა' : 'New question'}
+          {s.newQuestion}
         </Link>
       </div>
 
@@ -167,7 +168,7 @@ function SidebarInner({ user }: SidebarProps) {
         {conversations && conversations.length > 0 ? (
           <>
             <div style={{ padding: '0 8px 6px', fontSize: 11, fontWeight: 600, color: 'var(--text-low)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-              {locale === 'ka' ? 'ბოლო' : 'Recent'}
+              {s.recent}
             </div>
             {conversations.map(conv => {
               const isActive = conv.id === currentConvId
@@ -203,7 +204,7 @@ function SidebarInner({ user }: SidebarProps) {
         ) : (
           /* Empty state — gently prompt to ask the first question */
           <div style={{ padding: '8px 10px 0', color: 'var(--text-low)', fontSize: 12.5, lineHeight: 1.55 }}>
-            {locale === 'ka' ? 'დასვი კითხვა — საუბრები აქ გამოჩნდება.' : 'Ask a question to get started. Your conversations appear here.'}
+            {s.noConvs}
           </div>
         )}
       </div>
@@ -213,7 +214,7 @@ function SidebarInner({ user }: SidebarProps) {
         {connections && connections.length > 0 ? (
           <>
             <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-low)', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 8 }}>
-              {locale === 'ka' ? 'დაკავშირებული' : 'Connected'}
+              {s.connected}
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
               {connections.map(conn => (
@@ -240,7 +241,7 @@ function SidebarInner({ user }: SidebarProps) {
             }}
           >
             <BankIcon />
-            {locale === 'ka' ? 'ბანკის დაკავშირება' : 'Connect your bank'}
+            {s.connectBank}
           </Link>
         )}
       </div>
@@ -250,7 +251,7 @@ function SidebarInner({ user }: SidebarProps) {
         <button
           className="user-row"
           onClick={handleSignOut}
-          title="Click to sign out"
+          title={s.signOut}
           style={{ width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
         >
           {/* Avatar */}

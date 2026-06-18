@@ -210,6 +210,15 @@ export const STRINGS = {
       wsPlaceholder:  'e.g. TBC Bank, Redberry, Studio X',
       wsHint:         'This is how your workspace will be labelled in Fain.',
     },
+    // Sidebar
+    sidebar: {
+      newQuestion:  'New question',
+      recent:       'Recent',
+      noConvs:      'Ask a question to get started. Your conversations appear here.',
+      connected:    'Connected',
+      connectBank:  'Connect your bank',
+      signOut:      'Click to sign out',
+    },
     // Misc
     loading:    'Loading…',
     liveLabel:  'Live',
@@ -418,6 +427,15 @@ export const STRINGS = {
       wsLead:         'ჩვეულებრივ კომპანიის სახელი. მოგვიანებით შეგიძლია შეცვლა.',
       wsPlaceholder:  'მაგ. TBC Bank, Redberry, Studio X',
       wsHint:         'ასე აღინიშნება შენი სივრცე Fain-ში.',
+    },
+    // Sidebar
+    sidebar: {
+      newQuestion:  'ახალი კითხვა',
+      recent:       'ბოლო',
+      noConvs:      'დასვი კითხვა — საუბრები აქ გამოჩნდება.',
+      connected:    'დაკავშირებული',
+      connectBank:  'ბანკის დაკავშირება',
+      signOut:      'გამოსვლა',
     },
     loading:    'იტვირთება…',
     liveLabel:  'პირდაპირ',
