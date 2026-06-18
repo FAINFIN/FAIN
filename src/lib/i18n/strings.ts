@@ -113,6 +113,19 @@ export const STRINGS = {
       errWrongPassword:   'Incorrect password. Please try again.',
       errCredentials:     'Incorrect email or password.',
       errInvalidCode:     'Invalid code — check your authenticator app and try again.',
+      // Forgot password
+      sendResetLink:      'Send reset link',
+      checkInbox:         'Check your inbox',
+      resetSentHint:      (email: string) => `If ${email} has an account, we've sent a password reset link. Check your spam folder if it doesn't arrive within a few minutes.`,
+      resetExpiry:        'The link expires in 1 hour.',
+      resendReset:        'Resend reset link',
+      tryDifferentEmail:  '← Try a different email',
+      // Reset password page
+      newPassword:        'New password',
+      confirmPassword:    'Confirm new password',
+      savePassword:       'Save new password',
+      passwordsNoMatch:   'Passwords do not match.',
+      passwordReset:      'Password updated — signing you in…',
     },
     // Transactions
     transactions: {
@@ -266,6 +279,19 @@ export const STRINGS = {
       errWrongPassword:   'პაროლი არასწორია. სცადე ხელახლა.',
       errCredentials:     'ელ-ფოსტა ან პაროლი არასწორია.',
       errInvalidCode:     'კოდი არასწორია — შეამოწმე authenticator აპი და სცადე ხელახლა.',
+      // Forgot password
+      sendResetLink:      'აღდგენის ბმულის გაგზავნა',
+      checkInbox:         'შეამოწმე შემოსული ფოსტა',
+      resetSentHint:      (email: string) => `თუ ${email}-ს ანგარიში აქვს, გამოვუგზავნეთ პაროლის აღდგენის ბმული. სპამის საქაღალდეც შეამოწმე.`,
+      resetExpiry:        'ბმული 1 საათში ვადა გაუვა.',
+      resendReset:        'ბმულის ხელახლა გაგზავნა',
+      tryDifferentEmail:  '← სხვა ელ-ფოსტა',
+      // Reset password page
+      newPassword:        'ახალი პაროლი',
+      confirmPassword:    'პაროლის დადასტურება',
+      savePassword:       'პაროლის შენახვა',
+      passwordsNoMatch:   'პაროლები არ ემთხვევა.',
+      passwordReset:      'პაროლი განახლდა — სისტემაში შესვლა…',
     },
     // Transactions
     transactions: {

@@ -5,15 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { authClient } from '@/lib/auth/client'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-
-// ─── Password strength ────────────────────────────────────────────────────────
-
-const rules = [
-  { label: '8+ characters',     test: (p: string) => p.length >= 8 },
-  { label: 'Number',            test: (p: string) => /\d/.test(p) },
-  { label: 'Uppercase letter',  test: (p: string) => /[A-Z]/.test(p) },
-  { label: 'Special character', test: (p: string) => /[^A-Za-z0-9]/.test(p) },
-]
+import { useLocale } from '@/lib/i18n/LocaleContext'
 
 function CheckIcon({ ok }: { ok: boolean }) {
   return (
@@ -30,6 +22,15 @@ function ResetForm() {
   const router       = useRouter()
   const searchParams = useSearchParams()
   const token        = searchParams.get('token') ?? ''
+  const { t } = useLocale()
+  const a = t.auth
+
+  const rules = [
+    { label: a.rule8chars,  test: (p: string) => p.length >= 8 },
+    { label: a.ruleNumber,  test: (p: string) => /\d/.test(p) },
+    { label: a.ruleUpper,   test: (p: string) => /[A-Z]/.test(p) },
+    { label: a.ruleSpecial, test: (p: string) => /[^A-Za-z0-9]/.test(p) },
+  ]
 
   const [password,  setPassword]  = useState('')
   const [confirm,   setConfirm]   = useState('')
@@ -38,14 +39,14 @@ function ResetForm() {
   const [error,     setError]     = useState('')
   const [done,      setDone]      = useState(false)
 
-  const passOk    = rules.every(r => r.test(password))
-  const matchOk   = password === confirm && confirm.length > 0
+  const passOk  = rules.every(r => r.test(password))
+  const matchOk = password === confirm && confirm.length > 0
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
-    if (!passOk)     { setError('Please meet all password requirements.'); return }
-    if (!matchOk)    { setError('Passwords do not match.'); return }
-    if (!token)      { setError('Invalid or expired reset link. Request a new one.'); return }
+    if (!passOk)  { setError(a.errPasswordReqs); return }
+    if (!matchOk) { setError(a.passwordsNoMatch); return }
+    if (!token)   { setError('Invalid or expired reset link. Request a new one.'); return }
 
     setLoading(true)
     setError('')
@@ -64,8 +65,10 @@ function ResetForm() {
     return (
       <div style={{ marginTop: 26, textAlign: 'center' }}>
         <p style={{ color: 'var(--neg)', fontSize: 14 }}>
-          Invalid reset link. Please{' '}
-          <a href="/forgot-password" style={{ color: 'var(--tan-11)', fontWeight: 600 }}>request a new one</a>.
+          {a.tryDifferentEmail.replace('← ', '')}{' '}
+          <a href="/forgot-password" style={{ color: 'var(--tan-11)', fontWeight: 600 }}>
+            {a.sendResetLink.toLowerCase()}
+          </a>.
         </p>
       </div>
     )
@@ -75,10 +78,7 @@ function ResetForm() {
     return (
       <div style={{ marginTop: 26, textAlign: 'center', padding: '12px 0 24px' }}>
         <div style={{ fontSize: 42, marginBottom: 14 }}>✓</div>
-        <p style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 600 }}>Password updated</p>
-        <p style={{ margin: 0, fontSize: 14, color: 'var(--text-low)' }}>
-          Redirecting you to sign in…
-        </p>
+        <p style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 600 }}>{a.passwordReset}</p>
       </div>
     )
   }
@@ -87,11 +87,11 @@ function ResetForm() {
     <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 26 }}>
       <div>
         <Input
-          label="New password"
+          label={a.newPassword}
           type={showPw ? 'text' : 'password'}
           value={password}
           onChange={e => setPassword(e.target.value)}
-          placeholder="Create a strong password"
+          placeholder={a.createPassword}
           autoComplete="new-password"
           autoFocus
           required
@@ -111,16 +111,16 @@ function ResetForm() {
           onClick={() => setShowPw(v => !v)}
           style={{ marginTop: 6, fontSize: 12, color: 'var(--text-low)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
         >
-          {showPw ? 'Hide' : 'Show'}
+          {showPw ? a.hide : a.show}
         </button>
       </div>
 
       <Input
-        label="Confirm new password"
+        label={a.confirmPassword}
         type={showPw ? 'text' : 'password'}
         value={confirm}
         onChange={e => setConfirm(e.target.value)}
-        placeholder="Repeat your password"
+        placeholder={a.createPassword}
         autoComplete="new-password"
         required
       />
@@ -135,7 +135,7 @@ function ResetForm() {
         disabled={!passOk || !matchOk}
         style={{ width: '100%' }}
       >
-        Set new password
+        {a.savePassword}
       </Button>
     </form>
   )
