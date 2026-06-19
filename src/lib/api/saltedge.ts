@@ -18,6 +18,7 @@ async function saltEdgeFetch<T>(path: string, options?: RequestInit): Promise<T>
     throw new Error(`Salt Edge ${res.status}: ${JSON.stringify(err)}`)
   }
   const json = await res.json() as { data: T }
+  console.log('[saltedge] raw response for', path, JSON.stringify(json).slice(0, 500))
   return json.data
 }
 
