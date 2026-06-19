@@ -28,7 +28,7 @@ const APP_ROUTES = [
 // Auth routes where authenticated users should be sent elsewhere
 const AUTH_ROUTES = ['/login', '/register']
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // ── Short-circuit for API, static assets, auth callbacks ─────────────────

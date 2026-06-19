@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Fain · App Sitemap</title>
+<link href="https://fonts.googleapis.com/css2?family=Mulish:wght@400;500;600;700&family=Familjen+Grotesk:wght@500;600;700&family=Instrument+Serif:ital@0;1&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --stone-1:  #fefdfb;
+  --stone-2:  #faf8f4;
+  --stone-3:  #f4f2ec;
+  --stone-4:  #ece8e0;
+  --stone-5:  #e2ddd5;
+  --stone-6:  #d4cfc6;
+  --stone-7:  #b5b0a6;
+  --stone-8:  #8a8377;
+  --stone-9:  #6b6457;
+  --stone-10: #524d42;
+  --stone-11: #3a352c;
+  --stone-12: #29261b;
+  --tan-9:    #FD5400;
+  --tan-10:   #e84e00;
+  --tan-11:   #c44200;
+  --tan-soft: rgba(253,84,0,.1);
+  --pos:      #2d9e5f;
+  --neg:      #d44c47;
+  --surface-dark: #2b2620;
+  --font-sans:  'Mulish', system-ui, sans-serif;
+  --font-serif: 'Instrument Serif', Georgia, serif;
+  --font-mono:  'Geist Mono', monospace;
+  --font-logo:  'Familjen Grotesk', sans-serif;
+  --r-card:   20px;
+  --r-control:13px;
+  --r-pill:   999px;
+  --sh-card:  0 2px 8px rgba(40,33,20,.08), 0 0 0 1px rgba(40,33,20,.06);
+  --sh-lift:  0 4px 20px rgba(40,33,20,.12), 0 0 0 1px rgba(40,33,20,.07);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-sans);
+  background: var(--stone-3);
+  color: var(--stone-12);
+  min-height: 100vh;
+  padding: 56px 48px 80px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Header ── */
+.header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 52px;
+}
+.wordmark {
+  font-family: var(--font-logo);
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -.02em;
+  color: var(--stone-12);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.mark-tile {
+  width: 36px; height: 36px;
+  background: var(--stone-12);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-logo);
+  font-size: 17px;
+  color: var(--stone-1);
+  font-weight: 700;
+  letter-spacing: -.03em;
+}
+.doc-meta {
+  font-size: 12px;
+  color: var(--stone-8);
+  font-family: var(--font-mono);
+  text-align: right;
+  line-height: 1.7;
+}
+
+.headline {
+  font-family: var(--font-serif);
+  font-size: 48px;
+  line-height: 1.05;
+  letter-spacing: -.02em;
+  color: var(--stone-12);
+  margin-bottom: 8px;
+}
+.headline em { color: var(--tan-11); font-style: italic; }
+.sub {
+  font-size: 15px;
+  color: var(--stone-8);
+  margin-bottom: 52px;
+}
+
+/* ── Classic rule ── */
+.crule {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 32px;
+}
+.crule::before, .crule::after {
+  content: ''; flex: 1;
+  height: 1px; background: var(--stone-5);
+}
+.crule-diamond {
+  width: 6px; height: 6px;
+  background: var(--stone-6);
+  transform: rotate(45deg);
+}
+
+/* ── Section label ── */
+.section-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--stone-7);
+  margin-bottom: 16px;
+  font-family: var(--font-sans);
+}
+
+/* ── Layout ── */
+.flow {
+  display: grid;
+  grid-template-columns: 280px 1fr 1fr;
+  gap: 0;
+  align-items: start;
+  position: relative;
+}
+
+.lane {
+  padding: 0 20px;
+  border-right: 1px solid var(--stone-4);
+}
+.lane:first-child { padding-left: 0; }
+.lane:last-child  { border-right: none; padding-right: 0; }
+
+/* ── Page card ── */
+.page-card {
+  background: var(--stone-1);
+  border-radius: var(--r-card);
+  box-shadow: var(--sh-card);
+  padding: 18px 20px;
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: box-shadow .15s;
+  position: relative;
+}
+.page-card:hover {
+  box-shadow: var(--sh-lift);
+}
+
+.page-card.primary {
+  border: 1.5px solid var(--tan-9);
+  background: rgba(253,84,0,.03);
+}
+.page-card.primary .route { color: var(--tan-11); }
+
+.page-card.system {
+  background: var(--stone-2);
+  box-shadow: none;
+  border: 1px dashed var(--stone-5);
+}
+
+.route {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--stone-9);
+  letter-spacing: .01em;
+}
+
+.page-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--stone-12);
+  line-height: 1.2;
+}
+
+.page-desc {
+  font-size: 12.5px;
+  color: var(--stone-8);
+  line-height: 1.5;
+}
+
+.badge-row {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+.badge {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: var(--r-pill);
+  line-height: 1.6;
+}
+.badge-public   { background: #e8f5ec; color: #1a7a45; }
+.badge-auth     { background: #e8eef7; color: #2a4fa3; }
+.badge-app      { background: #f7f0e8; color: #8a5a1a; }
+.badge-admin    { background: #f5e8f0; color: #8a1a6a; }
+.badge-system   { background: var(--stone-3); color: var(--stone-8); border: 1px solid var(--stone-5); }
+.badge-primary  { background: var(--tan-soft); color: var(--tan-11); }
+
+/* ── Arrow connectors ── */
+.arrow-label {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--stone-7);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 0;
+}
+.arrow-label::before {
+  content: '';
+  display: block;
+  width: 16px; height: 1px;
+  background: var(--stone-5);
+}
+.arrow-label::after {
+  content: '→';
+  color: var(--stone-6);
+}
+
+/* ── Connector visual ── */
+.connector-area {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 0;
+  position: relative;
+}
+.connector-line {
+  flex: 1;
+  height: 1px;
+  background: var(--stone-5);
+  position: relative;
+}
+.connector-line::after {
+  content: '›';
+  position: absolute;
+  right: -6px;
+  top: -10px;
+  font-size: 18px;
+  color: var(--stone-6);
+}
+.connector-text {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: var(--stone-7);
+  background: var(--stone-3);
+  padding: 2px 8px;
+}
+
+/* ── Flow arrows between lanes ── */
+.lane-arrows {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 4px 0;
+  gap: 8px;
+}
+.lane-arrow {
+  font-size: 22px;
+  color: var(--stone-5);
+  line-height: 1;
+}
+.lane-arrow-label {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: var(--stone-7);
+  text-align: center;
+  writing-mode: vertical-lr;
+  transform: rotate(180deg);
+}
+
+/* ── Bottom admin row ── */
+.admin-row {
+  margin-top: 32px;
+  padding-top: 28px;
+  border-top: 1px solid var(--stone-4);
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+}
+.admin-row .section-label { margin-bottom: 0; white-space: nowrap; padding-top: 20px; }
+
+/* ── Legend ── */
+.legend {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--stone-4);
+  flex-wrap: wrap;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  color: var(--stone-8);
+}
+.legend-card {
+  width: 24px; height: 16px;
+  border-radius: 6px;
+}
+.legend-card.primary { background: rgba(253,84,0,.08); border: 1.5px solid var(--tan-9); }
+.legend-card.normal  { background: var(--stone-1); box-shadow: var(--sh-card); }
+.legend-card.system  { background: var(--stone-2); border: 1px dashed var(--stone-5); }
+.legend-spacer { flex: 1; }
+.legend-version {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--stone-7);
+}
+
+/* ── Sub-flow connector ── */
+.indent {
+  margin-left: 16px;
+  border-left: 2px solid var(--stone-4);
+  padding-left: 16px;
+}
+
+/* Divider */
+.lane-divider {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--stone-7);
+  margin: 6px 0 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.lane-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--stone-4);
+}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="wordmark">
+    <div class="mark-tile">f</div>
+    fain.
+  </div>
+  <div class="doc-meta">
+    App Sitemap · v1.0<br>
+    June 2026 · Next.js 16 App Router
+  </div>
+</div>
+
+<h1 class="headline">Page <em>architecture</em></h1>
+<p class="sub">15 routes · 3 route groups · privacy-first — no financial data leaves the browser</p>
+
+<div class="crule"><div class="crule-diamond"></div></div>
+
+<!-- Main 3-column flow -->
+<div class="flow">
+
+  <!-- ── Lane 1: Public ── -->
+  <div class="lane">
+    <div class="section-label">Public</div>
+
+    <div class="page-card">
+      <div class="route">/</div>
+      <div class="page-title">Landing</div>
+      <div class="page-desc">Hero, waitlist CTA, bank carousel (BOG, TBC, and 5 000+ global banks via Salt Edge)</div>
+      <div class="badge-row">
+        <span class="badge badge-public">Public</span>
+      </div>
+    </div>
+
+    <div class="lane-divider">onboarding</div>
+
+    <div class="page-card">
+      <div class="route">/onboarding</div>
+      <div class="page-title">Workspace Setup</div>
+      <div class="page-desc">Multi-step wizard — currency, locale, business type. Runs once after first login.</div>
+      <div class="badge-row">
+        <span class="badge badge-auth">Auth required</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── Lane 2: Auth flow ── -->
+  <div class="lane">
+    <div class="section-label">Auth flow  ·  (auth) group</div>
+
+    <div class="page-card">
+      <div class="route">/login</div>
+      <div class="page-title">Sign In</div>
+      <div class="page-desc">Magic link + Google OAuth via better-auth</div>
+      <div class="badge-row"><span class="badge badge-auth">Auth</span></div>
+    </div>
+
+    <div class="page-card">
+      <div class="route">/register</div>
+      <div class="page-title">Create Account</div>
+      <div class="page-desc">Email + password registration; redirects to onboarding</div>
+      <div class="badge-row"><span class="badge badge-auth">Auth</span></div>
+    </div>
+
+    <div class="page-card">
+      <div class="route">/forgot-password</div>
+      <div class="page-title">Forgot Password</div>
+      <div class="page-desc">Email input — triggers reset link via Resend</div>
+      <div class="badge-row"><span class="badge badge-auth">Auth</span></div>
+    </div>
+
+    <div class="indent">
+      <div class="page-card">
+        <div class="route">/forgot-password/reset</div>
+        <div class="page-title">Reset Password</div>
+        <div class="page-desc">Token-gated new-password form</div>
+        <div class="badge-row"><span class="badge badge-auth">Auth</span></div>
+      </div>
+    </div>
+
+    <div class="lane-divider">bank connection</div>
+
+    <div class="page-card">
+      <div class="route">/connect-bank</div>
+      <div class="page-title">Connect Bank</div>
+      <div class="page-desc">Source picker — BOG, TBC, or 5 000+ global banks. Initiates Salt Edge OAuth handshake.</div>
+      <div class="badge-row">
+        <span class="badge badge-auth">Auth required</span>
+      </div>
+    </div>
+
+    <div class="indent">
+      <div class="page-card system">
+        <div class="route">/connect-bank/callback</div>
+        <div class="page-title">Bank Callback</div>
+        <div class="page-desc">Salt Edge redirect target. Fetches 24 months of transactions → IndexedDB. No server storage.</div>
+        <div class="badge-row">
+          <span class="badge badge-system">System</span>
+          <span class="badge badge-system">No UI</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── Lane 3: App ── -->
+  <div class="lane">
+    <div class="section-label">App  ·  (app) group  ·  auth + bank required</div>
+
+    <div class="page-card primary">
+      <div class="route">/ask</div>
+      <div class="page-title">Ask Fain ★</div>
+      <div class="page-desc">Main product. Natural-language questions → Claude Sonnet answers with inline metrics like <span style="font-family:var(--font-mono);font-size:11px">[[Runway | 14 mo]]</span>. Context built from category aggregates only — never raw transactions.</div>
+      <div class="badge-row">
+        <span class="badge badge-primary">Primary</span>
+        <span class="badge badge-app">App</span>
+      </div>
+    </div>
+
+    <div class="page-card">
+      <div class="route">/dashboard</div>
+      <div class="page-title">Dashboard</div>
+      <div class="page-desc">KPI tiles (cash, burn rate, runway, MoM delta), Recharts area chart, top categories</div>
+      <div class="badge-row"><span class="badge badge-app">App</span></div>
+    </div>
+
+    <div class="page-card">
+      <div class="route">/cash-flow</div>
+      <div class="page-title">Cash Flow</div>
+      <div class="page-desc">Rolling 12-month income vs. expense bar chart, net cash line, period selectors</div>
+      <div class="badge-row"><span class="badge badge-app">App</span></div>
+    </div>
+
+    <div class="page-card">
+      <div class="route">/transactions</div>
+      <div class="page-title">Transactions</div>
+      <div class="page-desc">Paginated list (50/page) with search, type/category/period filters. Categories normalized at storage time via Salt Edge taxonomy.</div>
+      <div class="badge-row"><span class="badge badge-app">App</span></div>
+    </div>
+
+    <div class="page-card">
+      <div class="route">/accounts</div>
+      <div class="page-title">Accounts</div>
+      <div class="page-desc">Connected bank accounts — balance, currency, type. All data from IndexedDB.</div>
+      <div class="badge-row"><span class="badge badge-app">App</span></div>
+    </div>
+
+    <div class="page-card">
+      <div class="route">/settings</div>
+      <div class="page-title">Settings</div>
+      <div class="page-desc">Locale (EN / ქართული), currency display, account management, disconnect bank, sign out</div>
+      <div class="badge-row"><span class="badge badge-app">App</span></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Admin row -->
+<div class="admin-row">
+  <div class="section-label">Admin</div>
+  <div class="page-card" style="width:320px;flex-shrink:0">
+    <div class="route">/admin</div>
+    <div class="page-title">Admin Panel</div>
+    <div class="page-desc">Waitlist management (pending / approved / rejected), connection monitor, approval actions. Protected by session check.</div>
+    <div class="badge-row">
+      <span class="badge badge-admin">Admin only</span>
+    </div>
+  </div>
+  <div style="padding-top:20px;flex:1">
+    <p style="font-size:13px;color:var(--stone-8);line-height:1.7;max-width:560px">
+      Not part of the user-facing product. Accessible at
+      <span style="font-family:var(--font-mono);font-size:12px;color:var(--stone-9)">/admin</span>
+      — session-scoped, no separate role system in v1.
+      Displays waitlist entries from Postgres (the only server-side data store).
+      Bank connections table shows active Salt Edge sessions.
+    </p>
+  </div>
+</div>
+
+<!-- User journey note -->
+<div style="margin-top:40px;padding:24px 28px;background:var(--stone-1);border-radius:var(--r-card);box-shadow:var(--sh-card);display:flex;gap:16px;align-items:flex-start">
+  <div style="font-family:var(--font-mono);font-size:11px;color:var(--stone-7);padding-top:3px;white-space:nowrap">Primary flow</div>
+  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+    <span style="font-size:13px;font-family:var(--font-mono);background:var(--stone-3);padding:4px 10px;border-radius:6px;color:var(--stone-10)">/</span>
+    <span style="color:var(--stone-6)">→</span>
+    <span style="font-size:13px;font-family:var(--font-mono);background:var(--stone-3);padding:4px 10px;border-radius:6px;color:var(--stone-10)">/register</span>
+    <span style="color:var(--stone-6)">→</span>
+    <span style="font-size:13px;font-family:var(--font-mono);background:var(--stone-3);padding:4px 10px;border-radius:6px;color:var(--stone-10)">/onboarding</span>
+    <span style="color:var(--stone-6)">→</span>
+    <span style="font-size:13px;font-family:var(--font-mono);background:var(--stone-3);padding:4px 10px;border-radius:6px;color:var(--stone-10)">/connect-bank</span>
+    <span style="color:var(--stone-6)">→</span>
+    <span style="font-size:13px;font-family:var(--font-mono);background:var(--stone-3);padding:4px 10px;border-radius:6px;color:var(--stone-10)">/connect-bank/callback</span>
+    <span style="color:var(--stone-6)">→</span>
+    <span style="font-size:13px;font-family:var(--font-mono);background:rgba(253,84,0,.1);padding:4px 10px;border-radius:6px;color:var(--tan-11);border:1px solid rgba(253,84,0,.2)">/ask ★</span>
+  </div>
+</div>
+
+<!-- Legend -->
+<div class="legend">
+  <div class="legend-item"><div class="legend-card normal"></div> Standard page</div>
+  <div class="legend-item"><div class="legend-card primary"></div> Primary destination</div>
+  <div class="legend-item"><div class="legend-card system"></div> System / no visible UI</div>
+  <div class="legend-spacer"></div>
+  <div class="legend-version">sitemap.html · Fain v1.0 · fainfin.vercel.app</div>
+</div>
+
+</body>
+</html>
