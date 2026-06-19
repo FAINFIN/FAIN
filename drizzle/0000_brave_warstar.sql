@@ -1,4 +1,4 @@
-CREATE TABLE "account" (
+CREATE TABLE IF NOT EXISTS "account" (
 	"id" text PRIMARY KEY NOT NULL,
 	"account_id" text NOT NULL,
 	"provider_id" text NOT NULL,
@@ -14,7 +14,7 @@ CREATE TABLE "account" (
 	"updated_at" timestamp NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "bank_connections" (
+CREATE TABLE IF NOT EXISTS "bank_connections" (
 	"id" text PRIMARY KEY NOT NULL,
 	"user_id" text NOT NULL,
 	"salt_edge_customer_id" text NOT NULL,
@@ -28,7 +28,7 @@ CREATE TABLE "bank_connections" (
 	CONSTRAINT "bank_connections_salt_edge_connection_id_unique" UNIQUE("salt_edge_connection_id")
 );
 --> statement-breakpoint
-CREATE TABLE "passkey" (
+CREATE TABLE IF NOT EXISTS "passkey" (
 	"id" text PRIMARY KEY NOT NULL,
 	"name" text,
 	"public_key" text NOT NULL,
@@ -42,7 +42,7 @@ CREATE TABLE "passkey" (
 	"aaguid" text
 );
 --> statement-breakpoint
-CREATE TABLE "session" (
+CREATE TABLE IF NOT EXISTS "session" (
 	"id" text PRIMARY KEY NOT NULL,
 	"expires_at" timestamp NOT NULL,
 	"token" text NOT NULL,
@@ -54,7 +54,7 @@ CREATE TABLE "session" (
 	CONSTRAINT "session_token_unique" UNIQUE("token")
 );
 --> statement-breakpoint
-CREATE TABLE "sync_log" (
+CREATE TABLE IF NOT EXISTS "sync_log" (
 	"id" text PRIMARY KEY NOT NULL,
 	"connection_id" text NOT NULL,
 	"synced_at" timestamp DEFAULT now() NOT NULL,
@@ -64,7 +64,7 @@ CREATE TABLE "sync_log" (
 	"error" text
 );
 --> statement-breakpoint
-CREATE TABLE "two_factor" (
+CREATE TABLE IF NOT EXISTS "two_factor" (
 	"id" text PRIMARY KEY NOT NULL,
 	"secret" text NOT NULL,
 	"backup_codes" text NOT NULL,
@@ -72,7 +72,7 @@ CREATE TABLE "two_factor" (
 	CONSTRAINT "two_factor_user_id_unique" UNIQUE("user_id")
 );
 --> statement-breakpoint
-CREATE TABLE "user" (
+CREATE TABLE IF NOT EXISTS "user" (
 	"id" text PRIMARY KEY NOT NULL,
 	"name" text NOT NULL,
 	"email" text NOT NULL,
@@ -84,7 +84,7 @@ CREATE TABLE "user" (
 	CONSTRAINT "user_email_unique" UNIQUE("email")
 );
 --> statement-breakpoint
-CREATE TABLE "user_profiles" (
+CREATE TABLE IF NOT EXISTS "user_profiles" (
 	"id" text PRIMARY KEY NOT NULL,
 	"user_id" text NOT NULL,
 	"full_name" text,
@@ -111,7 +111,7 @@ CREATE TABLE "user_profiles" (
 	CONSTRAINT "user_profiles_user_id_unique" UNIQUE("user_id")
 );
 --> statement-breakpoint
-CREATE TABLE "verification" (
+CREATE TABLE IF NOT EXISTS "verification" (
 	"id" text PRIMARY KEY NOT NULL,
 	"identifier" text NOT NULL,
 	"value" text NOT NULL,
@@ -120,7 +120,7 @@ CREATE TABLE "verification" (
 	"updated_at" timestamp
 );
 --> statement-breakpoint
-CREATE TABLE "waitlist" (
+CREATE TABLE IF NOT EXISTS "waitlist" (
 	"id" text PRIMARY KEY NOT NULL,
 	"email" text NOT NULL,
 	"name" text,

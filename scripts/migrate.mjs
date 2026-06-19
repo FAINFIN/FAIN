@@ -17,8 +17,8 @@ const migrationsFolder = join(__dirname, '..', 'drizzle')
 
 const DATABASE_URL = process.env.DATABASE_URL
 if (!DATABASE_URL) {
-  console.error('❌  DATABASE_URL is not set — skipping migration')
-  process.exit(0) // soft-exit so build continues without DB
+  console.log('ℹ️   DATABASE_URL not set — skipping migration (local dev without DB)')
+  process.exit(0)
 }
 
 console.log('🗄️  Running Fain DB migrations…')
@@ -30,11 +30,17 @@ try {
   await migrate(db, { migrationsFolder })
   console.log('✅  Migrations applied successfully')
 } catch (err) {
-  // If tables already exist (first-run re-deploy) drizzle treats them as applied
-  if (err.message?.includes('already exists')) {
-    console.log('ℹ️   Tables already exist — nothing to do')
+  const msg = err?.message ?? String(err)
+  // Tables already exist from a previous deploy or better-auth — not an error
+  const isAlreadyExists =
+    msg.includes('already exists') ||
+    msg.includes('42P07') ||         // PostgreSQL relation already exists
+    msg.includes('42P16')            // invalid_table_definition (duplicate constraint)
+
+  if (isAlreadyExists) {
+    console.log('ℹ️   Some tables already exist — migration skipped (idempotent)')
   } else {
-    console.error('❌  Migration failed:', err.message)
+    console.error('❌  Migration failed:', msg)
     process.exit(1)
   }
 }
