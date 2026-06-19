@@ -106,6 +106,21 @@ export async function getCashPosition(accountIds?: string[]): Promise<CashPositi
 // merchant names, or personal identifiers. Only category-level aggregates
 // and monthly totals.
 
+// ── Recent transactions ───────────────────────────────────
+
+export async function getRecentTransactions(
+  accountIds: string[],
+  limit = 8
+): Promise<Transaction[]> {
+  const db = getDb()
+  return db.transactions
+    .orderBy('date')
+    .reverse()
+    .filter((tx) => accountIds.includes(tx.accountId))
+    .limit(limit)
+    .toArray()
+}
+
 function fmt(n: number): string {
   return n.toLocaleString('en-US', { maximumFractionDigits: 0 })
 }

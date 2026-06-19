@@ -4,7 +4,6 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { Suspense } from 'react'
-import { cn } from '@/lib/utils/cn'
 import { authClient } from '@/lib/auth/client'
 import { getDb } from '@/lib/db/schema'
 import { useLocale } from '@/lib/i18n/LocaleContext'
@@ -15,18 +14,71 @@ interface SidebarProps {
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 
-function PlusIcon() {
+function AskIcon() {
   return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
     </svg>
   )
 }
 
-function ChatIcon() {
+function OverviewIcon() {
   return (
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="7" height="7" rx="1"/>
+      <rect x="14" y="3" width="7" height="7" rx="1"/>
+      <rect x="3" y="14" width="7" height="7" rx="1"/>
+      <rect x="14" y="14" width="7" height="7" rx="1"/>
+    </svg>
+  )
+}
+
+function FeedIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 11a9 9 0 0 1 9 9"/>
+      <path d="M4 4a16 16 0 0 1 16 16"/>
+      <circle cx="5" cy="19" r="1" fill="currentColor" stroke="none"/>
+    </svg>
+  )
+}
+
+function CommandIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="4 17 10 11 4 5"/>
+      <line x1="12" y1="19" x2="20" y2="19"/>
+    </svg>
+  )
+}
+
+function CashIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/>
+      <polyline points="16 7 22 7 22 13"/>
+    </svg>
+  )
+}
+
+function TxIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="8" y1="6" x2="21" y2="6"/>
+      <line x1="8" y1="12" x2="21" y2="12"/>
+      <line x1="8" y1="18" x2="21" y2="18"/>
+      <line x1="3" y1="6" x2="3.01" y2="6"/>
+      <line x1="3" y1="12" x2="3.01" y2="12"/>
+      <line x1="3" y1="18" x2="3.01" y2="18"/>
+    </svg>
+  )
+}
+
+function SettingsIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
     </svg>
   )
 }
@@ -55,20 +107,18 @@ function SignOutIcon() {
 }
 
 // ─── Bank logo pill ───────────────────────────────────────────────────────────
-// Short abbreviated name shown in the sidebar connections row
 
 function BankPill({ name }: { name: string }) {
-  // Map known providers to short display names
   const abbr: Record<string, string> = {
-    bog:           'BOG',
-    'bank of georgia': 'BOG',
-    tbc:           'TBC',
-    'tbc bank':    'TBC',
-    quickbooks:    'QB',
-    xero:          'Xero',
-    nbg:           'NBG',
-    liberty:       'Lib.',
-    vtb:           'VTB',
+    bog:                'BOG',
+    'bank of georgia':  'BOG',
+    tbc:                'TBC',
+    'tbc bank':         'TBC',
+    quickbooks:         'QB',
+    xero:               'Xero',
+    nbg:                'NBG',
+    liberty:            'Lib.',
+    vtb:                'VTB',
   }
   const key   = name.toLowerCase().trim()
   const label = abbr[key] ?? name.slice(0, 4).toUpperCase()
@@ -93,22 +143,51 @@ function BankPill({ name }: { name: string }) {
   )
 }
 
+// ─── Nav link ─────────────────────────────────────────────────────────────────
+
+function NavLink({ href, icon, label, exact = false }: {
+  href: string
+  icon: React.ReactNode
+  label: string
+  exact?: boolean
+}) {
+  const pathname = usePathname()
+  const active = exact ? pathname === href : pathname === href || pathname.startsWith(href + '/')
+
+  return (
+    <Link
+      href={href}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 9,
+        padding: '7px 10px',
+        borderRadius: 9,
+        textDecoration: 'none',
+        background: active ? 'var(--stone-3)' : 'transparent',
+        color: active ? 'var(--text-high)' : 'var(--text-mid)',
+        fontSize: 13,
+        fontWeight: active ? 600 : 400,
+        transition: 'background .12s, color .12s',
+      }}
+      className="sidebar-nav-link"
+    >
+      <span style={{ opacity: active ? 1 : 0.65 }}>{icon}</span>
+      {label}
+    </Link>
+  )
+}
+
 // ─── Main sidebar ─────────────────────────────────────────────────────────────
 
 function SidebarInner({ user }: SidebarProps) {
-  const router   = useRouter()
-  const pathname = usePathname()
+  const router = useRouter()
   const { t } = useLocale()
   const s = t.sidebar
+  const n = t.nav
 
-  // Live data from IndexedDB
-  const conversations = useLiveQuery(
-    () => getDb().conversations.orderBy('updatedAt').reverse().limit(8).toArray(),
-    [], []
-  )
   const connections = useLiveQuery(() => getDb().connections.toArray(), [], [])
 
-  // User display
   const initials = user.name
     ? user.name.split(' ').map(w => w[0]?.toUpperCase() ?? '').join('').slice(0, 2)
     : (user.email[0]?.toUpperCase() ?? '?')
@@ -119,11 +198,6 @@ function SidebarInner({ user }: SidebarProps) {
     await authClient.signOut()
     router.push('/')
   }
-
-  // Current conversation from URL
-  const currentConvId = pathname.startsWith('/ask')
-    ? (typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('c') : null)
-    : null
 
   return (
     <aside className="sidebar">
@@ -137,83 +211,37 @@ function SidebarInner({ user }: SidebarProps) {
         </Link>
       </div>
 
-      {/* ── New question button ── */}
-      <div style={{ padding: '0 12px 16px' }}>
-        <Link
-          href="/ask"
-          className="btn btn-ghost btn-sm"
-          style={{
-            width: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 7,
-            justifyContent: 'flex-start',
-            padding: '8px 12px',
-            borderRadius: 10,
-            background: 'var(--stone-2)',
-            border: '1px solid var(--border-subtle)',
-            color: 'var(--text-mid)',
-            fontWeight: 500,
-            fontSize: 13,
-            textDecoration: 'none',
-          }}
-        >
-          <PlusIcon />
-          {s.newQuestion}
-        </Link>
-      </div>
+      {/* ── Page navigation ── */}
+      <div style={{ flex: 1, overflowY: 'auto', padding: '4px 8px 8px' }}>
 
-      {/* ── Recent conversations ── */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '0 8px' }}>
-        {conversations && conversations.length > 0 ? (
-          <>
-            <div style={{ padding: '0 8px 6px', fontSize: 11, fontWeight: 600, color: 'var(--text-low)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-              {s.recent}
-            </div>
-            {conversations.map(conv => {
-              const isActive = conv.id === currentConvId
-              return (
-                <Link
-                  key={conv.id}
-                  href={`/ask?c=${conv.id}`}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    padding: '7px 10px',
-                    borderRadius: 9,
-                    textDecoration: 'none',
-                    background: isActive ? 'var(--stone-3)' : 'transparent',
-                    color: isActive ? 'var(--text-high)' : 'var(--text-mid)',
-                    fontSize: 13,
-                    fontWeight: isActive ? 500 : 400,
-                    transition: 'background .15s',
-                  }}
-                  className="sidebar-conv-link"
-                >
-                  <span style={{ color: 'var(--text-low)', flexShrink: 0, opacity: 0.7 }}>
-                    <ChatIcon />
-                  </span>
-                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {conv.title}
-                  </span>
-                </Link>
-              )
-            })}
-          </>
-        ) : (
-          /* Empty state — gently prompt to ask the first question */
-          <div style={{ padding: '8px 10px 0', color: 'var(--text-low)', fontSize: 12.5, lineHeight: 1.55 }}>
-            {s.noConvs}
-          </div>
-        )}
+        {/* Primary: Ask */}
+        <NavLink href="/ask" icon={<AskIcon />} label={n.ask} exact />
+
+        {/* Divider */}
+        <div style={{ height: 1, background: 'var(--border-subtle)', margin: '8px 2px' }} />
+
+        {/* Dashboard views */}
+        <div style={{ padding: '2px 8px 4px', fontSize: 10.5, fontWeight: 600, color: 'var(--text-low)', letterSpacing: '0.07em', textTransform: 'uppercase' }}>
+          {s.navSection}
+        </div>
+        <NavLink href="/dashboard" icon={<OverviewIcon />} label={n.dashboard} />
+        <NavLink href="/feed"      icon={<FeedIcon />}     label={n.feed} />
+        <NavLink href="/command"   icon={<CommandIcon />}  label={n.command} />
+
+        {/* Divider */}
+        <div style={{ height: 1, background: 'var(--border-subtle)', margin: '8px 2px' }} />
+
+        {/* Data pages */}
+        <NavLink href="/cash-flow"    icon={<CashIcon />}     label={n.cashFlow} />
+        <NavLink href="/transactions" icon={<TxIcon />}       label={n.transactions} />
+        <NavLink href="/settings"     icon={<SettingsIcon />} label={n.settings} />
       </div>
 
       {/* ── Connected banks ── */}
-      <div style={{ padding: '12px 12px 4px', borderTop: '1px solid var(--border-subtle)', marginTop: 8 }}>
+      <div style={{ padding: '10px 12px 4px', borderTop: '1px solid var(--border-subtle)' }}>
         {connections && connections.length > 0 ? (
           <>
-            <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-low)', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 8 }}>
+            <div style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--text-low)', letterSpacing: '0.07em', textTransform: 'uppercase', marginBottom: 7 }}>
               {s.connected}
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
@@ -223,7 +251,6 @@ function SidebarInner({ user }: SidebarProps) {
             </div>
           </>
         ) : (
-          /* No banks — soft CTA */
           <Link
             href="/connect-bank"
             style={{
@@ -254,7 +281,6 @@ function SidebarInner({ user }: SidebarProps) {
           title={s.signOut}
           style={{ width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
         >
-          {/* Avatar */}
           {user.image ? (
             <img
               src={user.image}
@@ -267,7 +293,6 @@ function SidebarInner({ user }: SidebarProps) {
             </div>
           )}
 
-          {/* Name + company */}
           <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
             <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-high)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {firstName}

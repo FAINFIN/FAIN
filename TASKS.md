@@ -1,6 +1,7 @@
 # Fain — Development Task List
 > Aligned to `sitemap.html` v1.0 · June 2026  
 > 15 routes · 3 route groups · primary flow: `/` → `/register` → `/onboarding` → `/connect-bank` → `/connect-bank/callback` → `/ask ★`
+> Last updated: 2026-06-19 (reflects actual codebase state)
 
 ---
 
@@ -14,198 +15,198 @@
 ---
 
 ## Phase 0 — Project Foundation
-_Required before any route works._
+_All done and deployed to production._
 
-- [ ] **P0** Initialise Next.js 16 App Router project with TypeScript + pnpm
-- [ ] **P0** Configure Tailwind CSS with Fain design tokens (stone palette, `--tan-9: #FD5400`, CSS vars)
-- [ ] **P0** Add Mulish + Instrument Serif + Geist Mono + Familjen Grotesk via `next/font`
-- [ ] **P0** Set up `[locale]` dynamic segment for `/ka` (default) and `/en` — next-intl or custom `LocaleContext`
-- [ ] **P0** `src/lib/i18n/strings.ts` — EN + ქართული string map with `t()` helper
-- [ ] **P0** Neon Postgres connection + Drizzle ORM setup (`drizzle.config.ts`)
-- [ ] **P0** Drizzle schema — auth tables only: `users`, `sessions`, `accounts`, `verifications` (no financial data)
-- [ ] **P0** Run initial migration (`pnpm drizzle-kit push`)
-- [ ] **P0** better-auth config (`src/lib/auth/auth.ts`) — magic link + Google OAuth + Drizzle adapter
-- [ ] **P0** `src/app/api/auth/[...all]/route.ts` — mount better-auth handler
-- [ ] **P0** Dexie schema (`src/lib/db/schema.ts`) — tables: `accounts`, `transactions`, `categories`, `categoryRules`, `syncState`
-- [ ] **P0** Dexie query helpers (`src/lib/db/queries.ts`) — `getTransactions`, `getAccountBalances`, `getCategoryTotals`, `getSyncState`
-- [ ] **P0** Vercel Edge middleware (`src/middleware.ts`) — auth guard for `(app)` group + locale redirect
-- [ ] **P0** `src/app/layout.tsx` — root layout with font vars, `LocaleBody`, `ServiceWorker`
-- [ ] **P0** `src/styles/globals.css` — design tokens, typography scale
-- [ ] **P0** `.env.example` with all required + optional vars documented
+- [x] **P0** Initialise Next.js 16 App Router project with TypeScript + pnpm
+- [x] **P0** Configure Tailwind CSS with Fain design tokens (stone palette, `--tan-9: #FD5400`, CSS vars)
+- [x] **P0** Add Mulish + Instrument Serif + Geist Mono + Familjen Grotesk via `next/font`
+- [x] **P0** `src/lib/i18n/strings.ts` — EN + ქართული string map with `t()` helper + `LocaleContext`
+- [x] **P0** Neon Postgres connection + Drizzle ORM setup (`drizzle.config.ts`)
+- [x] **P0** Drizzle schema — auth + bank_connections + user_profiles + waitlist (no financial data)
+- [x] **P0** Run initial migration (`pnpm drizzle-kit push`) — live on Neon
+- [x] **P0** better-auth config (`src/lib/auth/config.ts`) — magic link + Google OAuth + Drizzle adapter
+- [x] **P0** `src/app/api/auth/[...all]/route.ts` — better-auth handler mounted
+- [x] **P0** Dexie schema (`src/lib/db/schema.ts`) — accounts, transactions, connections, syncMeta, conversations, messages
+- [x] **P0** Dexie query helpers (`src/lib/db/queries.ts`) — cash position, monthly totals, category breakdown, MoM trend
+- [x] **P0** Auth guard at `(app)/layout.tsx` level (server component, redirects to `/login`)
+- [x] **P0** `src/app/layout.tsx` — root layout with font vars, LocaleBody, ServiceWorker
+- [x] **P0** `src/styles/globals.css` — design tokens, typography scale, component classes
+- [x] **P0** `.env.example` with all required + optional vars documented
 
 ---
 
 ## Phase 1 — Primary User Flow (P0 Critical Path)
-_Every task here is a blocker. A user cannot reach `/ask` without all of these._
+_All routes built and live at fain.ge._
 
 ### `/` — Landing Page
-- [ ] **P0** Hero section — headline, sub, waitlist CTA (`<input type="email">` → Postgres `waitlist` table)
-- [ ] **P0** Bank carousel — BOG, TBC + "5 000+ banks" logos, auto-scrolling, Fain stone palette
-- [ ] **P0** Waitlist form submission — POST `/api/waitlist`, deduplicate by email
-- [ ] **P0** Responsive layout (mobile-first, sidebar hidden on landing)
+- [x] **P0** Hero section — headline, sub, waitlist CTA → Postgres `waitlist` table
+- [x] **P0** Bank carousel — BOG, TBC + "5,000+ banks" logos, auto-scrolling
+- [x] **P0** Waitlist form — POST `/api/waitlist`, deduplicates by email
+- [x] **P0** Responsive layout (mobile-first)
 
 ### `/register` — Create Account
-- [ ] **P0** Email + password form with better-auth `signUp.email()` 
-- [ ] **P0** Field validation (Zod) — email format, password ≥ 8 chars
-- [ ] **P0** On success: redirect to `/onboarding`
-- [ ] **P0** Link to `/login` for returning users
+- [x] **P0** Email + password + Google OAuth via better-auth
+- [x] **P0** Field validation — email format, password strength (8 chars, number, uppercase, special)
+- [x] **P0** On success → redirect to `/onboarding`
+- [x] **P0** Link to `/login` for returning users
 
 ### `/login` — Sign In
-- [ ] **P0** Magic link tab — email input → `signIn.magicLink()`, confirm-email state
-- [ ] **P0** Google OAuth tab — `signIn.social({ provider: "google" })` button
-- [ ] **P0** Email + password tab — `signIn.email()` fallback
-- [ ] **P0** After sign-in redirect logic: → `/onboarding` if no workspace, → `/connect-bank` if no bank, → `/ask` otherwise
+- [x] **P0** Google OAuth — `signIn.social({ provider: "google" })`
+- [x] **P0** Email + password — `signIn.email()`
+- [x] **P0** After sign-in → `/ask`
 
-### `/onboarding` — Workspace Setup (auth required)
-- [ ] **P0** Step 1: Currency selector (GEL default, USD, EUR, GBP, others)
-- [ ] **P0** Step 2: Locale selector (ქართული default, English)
-- [ ] **P0** Step 3: Business type (SaaS, retail, services, other)
-- [ ] **P0** Persist workspace prefs to Postgres (`workspace_settings` table)
-- [ ] **P0** Progress indicator (step 1 of 3 …)
-- [ ] **P0** On complete: redirect to `/connect-bank`
-- [ ] **P0** Skip + "Load sample data" path → loads TechFlow Georgia IndexedDB fixture → redirect to `/ask`
+### `/onboarding` — Workspace Setup
+- [x] **P0** 4-step wizard: role, company size, goal, workspace name
+- [x] **P0** Persists to Postgres `user_profiles` via `/api/onboarding`
+- [x] **P0** Progress indicator
+- [x] **P0** On complete → `/ask` (connect-bank nudge shown inline on /ask)
 
-### `/connect-bank` — Connect Bank (auth required)
-- [ ] **P0** Source picker grid — BOG logo card, TBC logo card, "Other bank" search
-- [ ] **P0** Salt Edge OAuth handshake — POST `/api/salt-edge/connect` → returns redirect URL
-- [ ] **P0** Loading / connecting state with animated indicator
-- [ ] **P0** `src/app/api/salt-edge/connect/route.ts` — create Salt Edge customer + login, return `connect_url`
-- [ ] **P0** Store Salt Edge `connection_id` + `customer_id` in Postgres `bank_connections` table (no financial data)
+### `/connect-bank` — Connect Bank
+- [x] **P0** Source picker — BOG, TBC, other banks
+- [x] **P0** POST `/api/bank/connect` → creates Salt Edge customer + connect session → returns `connect_url`
+- [x] **P0** Pending-row pattern: stores real Salt Edge customer ID before redirect
+- [x] **P0** Loading / connecting state
+- [x] **P0** `getCustomerByIdentifier()` fallback for DB-reset edge case
 
-### `/connect-bank/callback` — Bank Callback (system, no UI)
-- [ ] **P0** `src/app/(auth)/connect-bank/callback/page.tsx` — spinner-only page
-- [ ] **P0** On mount: call `/api/salt-edge/sync` → streams NDJSON to client
-- [ ] **P0** `src/app/api/salt-edge/sync/route.ts` — fetch 24 months transactions from Salt Edge → NDJSON stream
-- [ ] **P0** Client: receive NDJSON chunks → bulk-insert to Dexie (transactions + accounts)
-- [ ] **P0** Apply Salt Edge category taxonomy → populate `categories` table
-- [ ] **P0** On sync complete: redirect to `/ask`
-- [ ] **P0** Salt Edge HMAC-SHA256 webhook handler at `/api/salt-edge/webhook` — validate signature, update `syncState`
+### `/connect-bank/callback` — Bank Callback
+- [x] **P0** Spinner page — receives `?connection_id=` from Salt Edge redirect
+- [x] **P0** Calls `/api/bank/register` → promotes pending row → saves real connectionId
+- [x] **P0** Fetches accounts + 24 months transactions from Salt Edge → streams to IndexedDB via Dexie
+- [x] **P0** On sync complete → `/ask?q=What%27s+my+runway%3F`
 
-### `/ask` — Ask Fain ★ (PRIMARY — auth + bank required)
-- [ ] **P0** Chat layout — message thread + composer, sidebar nav
-- [ ] **P0** `buildAiContext()` (`src/lib/ai/buildAiContext.ts`) — reads IndexedDB → produces category-level aggregates JSON (never raw transactions)
-- [ ] **P0** `src/app/api/ai/stream/route.ts` — accepts `{ question, context }`, streams Claude Sonnet response via SSE
-- [ ] **P0** Vercel KV token-bucket rate limiter (20 req/user/day); graceful degradation without KV
-- [ ] **P0** Streaming SSE consumer in `useChat` hook — appends chunks to message state
-- [ ] **P0** `[[Label | value]]` parser → renders as `<MetricChip>` inline in AI response
-- [ ] **P0** `<MetricChip>` component — tangerine pill with label + value, tooltip on hover
-- [ ] **P0** Example prompt suggestions on empty state ("What's my runway?", "Where did I spend most last quarter?", "How's my burn rate?")
-- [ ] **P0** `useLiveQuery` subscription so new sync data refreshes context automatically
-- [ ] **P0** Error state (rate limit hit, API error, no context)
-- [ ] **P0** EN / ქართული prompt handling — pass locale to system prompt
+### `/ask` — Ask Fain ★
+- [x] **P0** Chat layout — message thread + composer + KPI chips row
+- [x] **P0** `buildAiContext()` → reads IndexedDB → category-level aggregates only (never raw transactions)
+- [x] **P0** `/api/ai/chat` — Claude Sonnet SSE streaming, rate limit 30/min
+- [x] **P0** `[[Label | value]]` parser → `<InlineMetric>` tangerine chips
+- [x] **P0** Prompt suggestions on empty state (EN + ქართული)
+- [x] **P0** Sample data fallback + connect-bank nudge when no accounts
+- [x] **P0** Auto-sends `?q=` URL param from callback redirect
+- [x] **P0** Conversation + message history persisted to Dexie
 
 ---
 
 ## Phase 2 — Full App Group (P1)
+_All built and live._
 
-### `/dashboard` — Dashboard
-- [ ] **P1** KPI tiles row — Total Cash (from IndexedDB `accounts`), Burn Rate (avg monthly expenses 3mo), Runway (cash ÷ burn), MoM delta badge
-- [ ] **P1** Recharts `AreaChart` — cumulative cash balance over 12 months
-- [ ] **P1** Top-5 categories by spend — horizontal bar or ranked list
-- [ ] **P1** `useLiveQuery` — all tiles update when sync completes
-- [ ] **P1** Currency formatting util (`formatGEL`, `formatCurrency`) using workspace locale + currency
+### `/dashboard`
+- [x] **P1** KPI tiles — Total Cash, Burn Rate, Runway, MoM delta badge
+- [x] **P1** Recharts AreaChart — cash balance over 6 months
+- [x] **P1** Top categories by spend — bar chart
+- [x] **P1** `useLiveQuery` — updates when sync completes
+- [x] **P1** Currency formatting with GEL/locale support
 
-### `/cash-flow` — Cash Flow
-- [ ] **P1** Recharts `BarChart` — income (positive) vs expense (negative) bars, 12-month rolling
-- [ ] **P1** Net cash `LineChart` overlay
-- [ ] **P1** Period selector (3m / 6m / 12m / custom range)
-- [ ] **P1** Month labels in selected locale (EN: Jan Feb … / KA: იან თებ …)
-- [ ] **P1** Summary row — total in, total out, net for period
+### `/cash-flow`
+- [x] **P1** Recharts BarChart — income vs expenses, 6-month rolling
+- [x] **P1** Net cash AreaChart overlay
+- [x] **P1** Month labels in selected locale (EN / ქართული)
+- [x] **P1** Summary row — total in, total out, net for period
 
-### `/transactions` — Transactions
-- [ ] **P1** Paginated list — 50 rows/page, Dexie offset query with `useLiveQuery`
-- [ ] **P1** Search — text filter on description field
-- [ ] **P1** Type filter — income / expense / transfer
-- [ ] **P1** Category filter — multi-select from categories in IndexedDB
-- [ ] **P1** Period filter — date range picker
-- [ ] **P1** Row: date · description · category chip · amount (colour-coded +/–)
-- [ ] **P1** Pagination controls (prev / next / page N of M)
+### `/transactions`
+- [x] **P1** Paginated list — Dexie offset query with `useLiveQuery`
+- [x] **P1** Search — text filter on description
+- [x] **P1** Type filter — income / expense / transfer
+- [x] **P1** Period filter — 1m / 3m / 6m / 12m
+- [x] **P1** Row: date · description · category chip · amount (colour-coded +/–)
+- [x] **P1** Pagination controls
 
-### `/accounts` — Accounts
-- [ ] **P1** Account cards — bank name, account number (masked), currency, current balance
-- [ ] **P1** All data from Dexie `accounts` table — zero server reads
-- [ ] **P1** "Last synced" timestamp from `syncState`
-- [ ] **P1** "Sync now" button — triggers fresh Salt Edge fetch for active connections
+### `/accounts`
+- [x] **P1** Account cards — bank name, masked number, currency, balance
+- [x] **P1** All data from Dexie — zero server reads
+- [x] **P1** "Last synced" timestamp
+- [x] **P1** "Sync now" button
 
-### `/settings` — Settings
-- [ ] **P1** Locale toggle — EN / ქართული — writes to `localStorage('fain-locale')` + `LocaleContext`
-- [ ] **P1** Currency display selector — GEL / USD / EUR (display preference only, does not convert)
-- [ ] **P1** Disconnect bank — DELETE `/api/salt-edge/disconnect` → clears `bank_connections` row + IndexedDB wipe
-- [ ] **P1** Delete account — cascade: session, user, bank_connections, workspace_settings rows
-- [ ] **P1** Sign out — `signOut()` → redirect to `/`
+### `/settings`
+- [x] **P1** Locale toggle — EN / ქართული
+- [x] **P1** Connected sources list with disconnect per-source (IndexedDB only)
+- [x] **P1** Clear all data button → wipes IndexedDB → `/connect-bank`
+- [x] **P1** Sign out
 
 ---
 
 ## Phase 3 — Auth Completeness (P2)
+_Built._
 
-### `/forgot-password` — Forgot Password
-- [ ] **P2** Email input form
-- [ ] **P2** POST `/api/auth/forgot-password` → better-auth `forgetPassword()` → Resend email with reset link
-- [ ] **P2** Confirm-sent state ("Check your inbox")
+### `/forgot-password`
+- [x] **P2** Email input → better-auth `forgetPassword()` → Resend email
+- [x] **P2** Confirm-sent state
 
-### `/forgot-password/reset` — Reset Password
-- [ ] **P2** Read `token` from URL search params
-- [ ] **P2** New password + confirm password fields
-- [ ] **P2** POST → better-auth `resetPassword({ token, newPassword })`
-- [ ] **P2** On success → redirect to `/login`
-- [ ] **P2** Token-expired / invalid error state
+### `/forgot-password/reset`
+- [x] **P2** Token from URL params → `resetPassword({ token, newPassword })`
+- [x] **P2** On success → `/login`
+- [x] **P2** Token-expired error state
 
 ---
 
 ## Phase 4 — Infrastructure & Polish (P3)
 
 ### PWA
-- [ ] **P3** `public/manifest.json` — Fain brand colours, icons (192 + 512)
-- [ ] **P3** `public/sw.js` via Workbox — cache-first shell (dashboard, ask, cash-flow); network-first for `/api/` and `/auth/`
-- [ ] **P3** `ServiceWorker` component — registers SW in production only
-- [ ] **P3** Install prompt (`beforeinstallprompt`) for mobile
+- [x] **P3** `public/manifest.json` — Fain brand colours, icons (192 + 512)
+- [x] **P3** `public/sw.js` — service worker (cache-first shell)
+- [x] **P3** `ServiceWorker` component — registers SW in production
 
 ### Sample Data
-- [ ] **P3** `src/lib/db/sampleData.ts` — TechFlow Georgia fixture (12 months, realistic GEL transactions, SaaS categories)
-- [ ] **P3** `loadSampleData()` — bulk-inserts fixture into Dexie; clears on "Disconnect / clear data"
-- [ ] **P3** `<SampleDataBanner>` — dismissible warning shown when using sample data
+- [x] **P3** `src/lib/db/sampleData.ts` — TechFlow Georgia fixture (GEL transactions, SaaS categories)
+- [x] **P3** `loadSampleData()` — bulk-inserts into Dexie
+- [x] **P3** `<SampleDataBanner>` — dismissible warning when using sample data
 
 ### Admin Panel (`/admin`)
-- [ ] **P3** Session guard — redirect if not admin email (env var `ADMIN_EMAIL`)
-- [ ] **P3** Waitlist table — columns: email, joined_at, status (pending/approved/rejected), actions
-- [ ] **P3** Approve / reject actions — PATCH `/api/admin/waitlist/:id`
-- [ ] **P3** Connection monitor — list of active `bank_connections` rows with status + last sync
-- [ ] **P3** No-frills, functional UI — Fain tokens but minimal chrome
+- [x] **P3** Waitlist table — email, status, approve/reject actions
+- [x] **P3** Connection monitor — active `bank_connections` with status + last sync
+- [x] **P3** PATCH `/api/admin/waitlist/:id` + GET `/api/admin/clients`
 
 ### Shared Components
-- [ ] **P3** `<Sidebar>` — nav links (Ask, Dashboard, Cash Flow, Transactions, Accounts, Settings), locale toggle, sign-out
-- [ ] **P3** `<ErrorBoundary>` — catches render errors, shows retry UI
-- [ ] **P3** `<Toast>` system — success / error / info toasts, auto-dismiss
-- [ ] **P3** `<LocaleBody>` — applies `lang` + `data-locale` to `<body>`, triggers Georgian font switch
+- [x] **P3** `<Sidebar>` — nav links, locale toggle, sign-out
+- [x] **P3** `<ErrorBoundary>` — catches render errors
+- [x] **P3** `<Toast>` system — success / error / info, auto-dismiss
+- [x] **P3** `<LocaleBody>` — applies `lang` + `data-locale` to `<body>`
 
 ### Observability & Ops
-- [ ] **P3** Structured logging on all API routes (request id, user id — no financial data in logs)
-- [ ] **P3** `/api/health` endpoint — DB ping + env-var check
-- [ ] **P3** Vercel deployment config — env vars in project settings, no database provisioning needed
-- [ ] **P3** `CONTRIBUTING.md` — local dev setup, env vars, sample data walkthrough
+- [x] **P3** `/api/health` — DB ping + env-var check + version hash
+- [ ] **P3** Structured logging on all API routes (currently `console.error` only)
+- [ ] **P3** `CONTRIBUTING.md` — local dev setup guide
 
 ---
 
-## Route Coverage Checklist
+## Outstanding Items
+
+### Deploy / Env
+- [x] `SALT_EDGE_APP_ID` + `SALT_EDGE_SECRET` — confirmed in Production (health endpoint 2026-06-19)
+- [x] `NEXT_PUBLIC_APP_URL=https://fain.ge` — confirmed present
+- [x] Vercel running version `2df0c87` — latest commit live
+- [ ] Optional: `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` — rate limiter has graceful fallback without it
+
+### E2E Verification
+- [x] Health endpoint shows all required + Salt Edge vars in `present`
+- [ ] End-to-end: register → onboarding → connect-bank (BOG/TBC) → callback → `/ask` with real data
+- [ ] Verify `/api/bank/webhook` receives Salt Edge notifications
+
+### Disconnect bank — server-side (P1 gap)
+- [x] `DELETE /api/bank/disconnect` — remove `bank_connections` row + call Salt Edge `deleteConnection()`.
+      SettingsClient calls server endpoint before clearing IndexedDB. Committed as `d6ae4f3`.
+
+---
+
+## Route Coverage
 
 | Route | Group | Priority | Status |
 |---|---|---|---|
-| `/` | Public | P0 | `[ ]` |
-| `/onboarding` | Public (auth required) | P0 | `[ ]` |
-| `/login` | `(auth)` | P0 | `[ ]` |
-| `/register` | `(auth)` | P0 | `[ ]` |
-| `/forgot-password` | `(auth)` | P2 | `[ ]` |
-| `/forgot-password/reset` | `(auth)` | P2 | `[ ]` |
-| `/connect-bank` | `(auth)` | P0 | `[ ]` |
-| `/connect-bank/callback` | `(auth)` system | P0 | `[ ]` |
-| `/ask` ★ | `(app)` | P0 | `[ ]` |
-| `/dashboard` | `(app)` | P1 | `[ ]` |
-| `/cash-flow` | `(app)` | P1 | `[ ]` |
-| `/transactions` | `(app)` | P1 | `[ ]` |
-| `/accounts` | `(app)` | P1 | `[ ]` |
-| `/settings` | `(app)` | P1 | `[ ]` |
-| `/admin` | Admin | P3 | `[ ]` |
+| `/` | Public | P0 | ✅ Live |
+| `/onboarding` | Public (auth) | P0 | ✅ Live |
+| `/login` | `(auth)` | P0 | ✅ Live |
+| `/register` | `(auth)` | P0 | ✅ Live |
+| `/forgot-password` | `(auth)` | P2 | ✅ Live |
+| `/forgot-password/reset` | `(auth)` | P2 | ✅ Live |
+| `/connect-bank` | `(auth)` | P0 | ✅ Live |
+| `/connect-bank/callback` | `(auth)` system | P0 | ✅ Live |
+| `/ask` ★ | `(app)` | P0 | ✅ Live |
+| `/dashboard` | `(app)` | P1 | ✅ Live |
+| `/cash-flow` | `(app)` | P1 | ✅ Live |
+| `/transactions` | `(app)` | P1 | ✅ Live |
+| `/accounts` | `(app)` | P1 | ✅ Live |
+| `/settings` | `(app)` | P1 | ✅ Live |
+| `/admin` | Admin | P3 | ✅ Live |
 
 ---
 
-_Source of truth: `sitemap.html` v1.0 · Last synced: June 2026_
+_Source of truth: `sitemap.html` v1.0 · Last synced: 2026-06-19_

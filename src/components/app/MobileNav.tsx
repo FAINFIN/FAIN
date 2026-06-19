@@ -25,24 +25,20 @@ function DashIcon() {
   )
 }
 
-function TxIcon() {
+function FeedIcon() {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="8" y1="6" x2="21" y2="6"/>
-      <line x1="8" y1="12" x2="21" y2="12"/>
-      <line x1="8" y1="18" x2="21" y2="18"/>
-      <line x1="3" y1="6" x2="3.01" y2="6"/>
-      <line x1="3" y1="12" x2="3.01" y2="12"/>
-      <line x1="3" y1="18" x2="3.01" y2="18"/>
+      <path d="M18 20V10"/>
+      <path d="M12 20V4"/>
+      <path d="M6 20v-6"/>
     </svg>
   )
 }
 
-function CashIcon() {
+function CommandIcon() {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/>
-      <polyline points="16 7 22 7 22 13"/>
+      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
     </svg>
   )
 }
@@ -63,17 +59,19 @@ export function MobileNav() {
   const { t } = useLocale()
 
   const items = [
-    { href: '/ask',          label: t.nav.ask,         icon: <AskIcon /> },
-    { href: '/dashboard',    label: t.nav.dashboard,   icon: <DashIcon /> },
-    { href: '/transactions', label: t.nav.txnsShort,   icon: <TxIcon /> },
-    { href: '/cash-flow',    label: t.nav.cashShort,   icon: <CashIcon /> },
-    { href: '/settings',     label: t.nav.settings,    icon: <SettingsIcon /> },
+    { href: '/ask',       label: t.nav.ask,        icon: <AskIcon />,     exact: true },
+    { href: '/dashboard', label: t.nav.dashboard,  icon: <DashIcon />,    exact: false },
+    { href: '/feed',      label: t.nav.feedShort,    icon: <FeedIcon />,    exact: false },
+    { href: '/command',   label: t.nav.commandShort, icon: <CommandIcon />, exact: false },
+    { href: '/settings',  label: t.nav.settings,   icon: <SettingsIcon />, exact: false },
   ]
 
   return (
     <nav className="mobile-nav" aria-label={t.nav.mobileLabel}>
       {items.map(item => {
-        const active = pathname === item.href || (item.href !== '/ask' && pathname.startsWith(item.href))
+        const active = item.exact
+          ? pathname === item.href
+          : pathname === item.href || pathname.startsWith(item.href + '/')
         return (
           <Link
             key={item.href}
