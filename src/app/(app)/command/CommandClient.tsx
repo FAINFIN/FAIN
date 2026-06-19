@@ -255,7 +255,7 @@ function CommandGrid({ pills, kpi, chartData, expenses, depts, actions, isSample
                 tick={{ fontSize: 10, fill: 'var(--text-low)' }}
                 axisLine={false} tickLine={false} />
               <Tooltip
-                formatter={(v: number) => [`₾${(v / 1000).toFixed(0)}k`, 'Cash']}
+                formatter={(v: unknown) => [`₾${((v as number) / 1000).toFixed(0)}k`, 'Cash']}
                 contentStyle={{
                   background: 'var(--surface-primary)',
                   border: '1px solid var(--border-subtle)',
