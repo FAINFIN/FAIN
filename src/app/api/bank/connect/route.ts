@@ -67,7 +67,11 @@ export async function POST(req: NextRequest) {
     const { connect_url, expires_at } = await createConnectSession(saltEdgeCustomerId, returnTo)
     return NextResponse.json({ connect_url, expires_at })
   } catch (err) {
-    console.error('[bank/connect]', err)
-    return NextResponse.json({ error: 'Failed to create connection session' }, { status: 500 })
+    const detail = err instanceof Error ? err.message : String(err)
+    // Log in pieces so Vercel doesn't truncate the Salt Edge error body
+    console.error('[bank/connect] FAILED:', detail.slice(0, 200))
+    console.error('[bank/connect] DETAIL:', detail.slice(200))
+    // Return full error in dev/debug mode so we can see exact Salt Edge response
+    return NextResponse.json({ error: 'Failed to create connection session', detail }, { status: 500 })
   }
 }
