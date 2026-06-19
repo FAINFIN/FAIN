@@ -31,11 +31,12 @@ try {
   console.log('✅  Migrations applied successfully')
 } catch (err) {
   const msg = err?.message ?? String(err)
-  // Tables already exist from a previous deploy or better-auth — not an error
+  // Tables/constraints already exist from a previous deploy or better-auth — not an error
   const isAlreadyExists =
     msg.includes('already exists') ||
-    msg.includes('42P07') ||         // PostgreSQL relation already exists
-    msg.includes('42P16')            // invalid_table_definition (duplicate constraint)
+    msg.includes('42P07') ||         // PostgreSQL: relation already exists
+    msg.includes('42P16') ||         // PostgreSQL: invalid_table_definition (duplicate constraint)
+    msg.includes('42710')            // PostgreSQL: duplicate_object (constraint already exists)
 
   if (isAlreadyExists) {
     console.log('ℹ️   Some tables already exist — migration skipped (idempotent)')
