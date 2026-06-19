@@ -360,7 +360,7 @@ function DashboardView({ timeLabel, kpi, chartData, insights, txns, isSample }: 
             <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'var(--text-low)' }} axisLine={false} tickLine={false} />
             <YAxis hide />
             <Tooltip
-              formatter={(v: number) => [`₾${(v / 1000).toFixed(0)}k`, 'Cash']}
+              formatter={(v: unknown) => [`₾${((v as number) / 1000).toFixed(0)}k`, 'Cash']}
               contentStyle={{ background: 'var(--surface-primary)', border: '1px solid var(--border-subtle)', borderRadius: 10, fontSize: 12 }}
             />
             {nowMonth && (
