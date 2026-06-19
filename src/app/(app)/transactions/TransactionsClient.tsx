@@ -5,23 +5,9 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { getDb } from '@/lib/db/schema'
 import { formatCurrency } from '@/lib/utils/currency'
 import { useLocale } from '@/lib/i18n/LocaleContext'
+import { catColor } from '@/lib/utils/categories'
 import type { Transaction, Currency } from '@/types'
 import Link from 'next/link'
-
-// ─── Category colour map ──────────────────────────────────────────────────────
-const CAT_COLORS: Record<string, string> = {
-  'Food & Dining':    '#FF8A65',
-  'Transportation':   '#4DB6AC',
-  'Shopping':         '#BA68C8',
-  'Business':         '#4FC3F7',
-  'Utilities':        '#FFD54F',
-  'Entertainment':    '#F06292',
-  'Healthcare':       '#81C784',
-  'Education':        '#7986CB',
-  'Travel':           '#4DD0E1',
-  'Other':            '#B0BEC5',
-}
-function catColor(c: string) { return CAT_COLORS[c] ?? '#B0BEC5' }
 
 // ─── Amount pill ──────────────────────────────────────────────────────────────
 function AmountPill({ tx, fmt }: { tx: Transaction; fmt: (n: number) => string }) {

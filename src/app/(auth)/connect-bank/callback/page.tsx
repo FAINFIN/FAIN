@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { getDb } from '@/lib/db/schema'
 import { useLocale } from '@/lib/i18n/LocaleContext'
+import { normalizeCategory } from '@/lib/utils/categories'
 import type { Provider } from '@/types'
 
 function CallbackInner() {
@@ -90,7 +91,7 @@ function CallbackInner() {
               type:         txAmt < 0 ? 'debit' : 'credit',
               currency:     txCurrency,
               description:  tx.description as string,
-              category:     (tx.category as string | undefined) ?? 'Other',
+              category:     normalizeCategory(tx.category as string | undefined),
               merchantName: extra?.merchant_name,
               pending:      false,
             })
