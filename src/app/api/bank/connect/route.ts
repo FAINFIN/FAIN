@@ -38,7 +38,8 @@ export async function POST(req: NextRequest) {
     } else {
       // First time: create a Salt Edge customer and store the real SE-assigned ID
       const identifier = userId.replace(/[^a-z0-9_-]/gi, '_')
-      let customer: { id: string; identifier: string }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let customer: any
       try {
         customer = await createCustomer(identifier)
       } catch (createErr) {
@@ -50,7 +51,13 @@ export async function POST(req: NextRequest) {
           throw createErr  // Re-throw original error if lookup also fails
         }
       }
-      saltEdgeCustomerId = customer.customer_id  // Salt Edge v6: field is `customer_id` not `id`
+      // Log raw object so we can confirm which field name v6 uses
+      console.log('[bank/connect] customer object:', JSON.stringify(customer))
+      // v6 uses `customer_id`; v5 used `id` — handle both defensively
+      saltEdgeCustomerId = customer.customer_id ?? customer.id
+      if (!saltEdgeCustomerId) {
+        throw new Error(`Salt Edge customer has no ID. Raw: ${JSON.stringify(customer)}`)
+      }
 
       // Insert a pending row so subsequent connects (or reconnects) reuse this customer ID
       await db.insert(bankConnections).values({
