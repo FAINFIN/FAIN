@@ -40,6 +40,21 @@ export function SettingsClient() {
     const db = getDb()
     const conn = await db.connections.get(connectionId)
     if (!conn) return
+
+    // Remove from Salt Edge + Postgres (best-effort; don't block on failure)
+    if (connectionId !== 'sample-connection') {
+      try {
+        await fetch('/api/bank/disconnect', {
+          method:  'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ connectionId }),
+        })
+      } catch (err) {
+        console.error('[settings] server disconnect failed:', err)
+      }
+    }
+
+    // Always clear IndexedDB regardless of server result
     const accountIds = conn.accountIds ?? []
     await db.transactions.where('accountId').anyOf(accountIds).delete()
     await db.accounts.where('id').anyOf(accountIds).delete()
