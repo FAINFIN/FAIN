@@ -285,6 +285,46 @@ export const STRINGS = {
       clearData:      'Clear all local data',
       version:        'v',
     },
+    // Connect bank flow
+    connectBank: {
+      // Stepper labels
+      stepAccount:  'Create account',
+      stepBank:     'Connect bank',
+      stepAsk:      'Ask away',
+      stepBankLong: 'Connect your bank',
+      // Pick step
+      pickHeadPre:  'Now, connect your ',
+      pickHeadEm:   'numbers',
+      pickHeadPost: '.',
+      pickLead:     'Link at least one account. Connections are read-only — Fain can see your numbers, never touch them.',
+      banks:        'Banks',
+      books:        'Books',
+      assure:       'Fain reads balances and transactions through audited, bank-grade connections. It can never move money, and it never sees your bank password.',
+      noConnected:  'No accounts connected yet',
+      sourcesConnected: (n: number) => `${n} source${n !== 1 ? 's' : ''} connected`,
+      skip:         'Skip for now',
+      continue:     'Continue',
+      // Done step
+      doneHeadPre:  "You're in. Ask your ",
+      doneHeadEm:   'first question',
+      doneHeadPost: '.',
+      doneSyncing:  'Your accounts are syncing — first answers are ready in about a minute.',
+      doneSkipped:  'Try Fain with sample data — connect a real bank anytime from Settings.',
+      loadSample:   '📊 Load sample company data',
+      goToFain:     'Go to Fain',
+      // Source card states
+      srcConnected: 'Read-only · synced just now',
+      srcError:     'Connection failed — try again',
+      srcRetry:     'Retry',
+      srcConnect:   'Connect',
+      srcDisconnect:'Disconnect',
+      // Starter chips
+      starters: [
+        'How long is my runway?',
+        "What's my biggest expense?",
+        'Am I profitable yet?',
+      ],
+    },
     // Misc
     loading:    'Loading…',
     liveLabel:  'Live',
@@ -568,6 +608,46 @@ export const STRINGS = {
       privacyNote:    'ყველა ფინანსური მონაცემი ამ ბრაუზერშია. Fain-ის სერვერები ვერ ხედავს შენს ოპერაციებს, ნაშთებს ან ანგარიშის ნომრებს.',
       clearData:      'ყველა მონაცემის წაშლა',
       version:        'ვერსია ',
+    },
+    // Connect bank flow
+    connectBank: {
+      // Stepper labels
+      stepAccount:  'ანგარიში',
+      stepBank:     'ბანკი',
+      stepAsk:      'ჰკითხე',
+      stepBankLong: 'ბანკის დაკავშირება',
+      // Pick step
+      pickHeadPre:  'ახლა, დაუკავშირე შენი ',
+      pickHeadEm:   'ციფრები',
+      pickHeadPost: '.',
+      pickLead:     'დააკავშირე მინიმუმ ერთი ანგარიში. კავშირი მხოლოდ წაკითხვისთვისაა — Fain ვერ ახდენს გადარიცხვას.',
+      banks:        'ბანკები',
+      books:        'ბუღალტერია',
+      assure:       'Fain კითხულობს ნაშთებს და ოპერაციებს. ვერ ახდენს გადარიცხვას, ვერ ხედავს პაროლს.',
+      noConnected:  'ანგარიში ჯერ არ არის დაკავშირებული',
+      sourcesConnected: (n: number) => `${n} წყარო დაკავშირებულია`,
+      skip:         'გამოტოვება',
+      continue:     'გაგრძელება',
+      // Done step
+      doneHeadPre:  'შიგნით ხარ. დასვი ',
+      doneHeadEm:   'პირველი შეკითხვა',
+      doneHeadPost: '.',
+      doneSyncing:  'ანგარიშები სინქრონიზდება — პასუხები წუთებში იქნება მზად.',
+      doneSkipped:  'სცადე Fain სადემო მონაცემებით — ბანკი ნებისმიერ დროს შეგიძლია დაუკავშირო.',
+      loadSample:   '📊 სადემო მონაცემების ჩატვირთვა',
+      goToFain:     'Fain-ზე გადასვლა',
+      // Source card states
+      srcConnected: 'დაკავშირებულია',
+      srcError:     'კავშირი ვერ მოხერხდა',
+      srcRetry:     'სცადე',
+      srcConnect:   'დაკავშირება',
+      srcDisconnect:'გათიშვა',
+      // Starter chips
+      starters: [
+        'რამდენ ხანს გავუძლებ?',
+        'რა არის ჩემი მთავარი ხარჯი?',
+        'მომგებიანი ვარ?',
+      ],
     },
     loading:    'იტვირთება…',
     liveLabel:  'პირდაპირ',

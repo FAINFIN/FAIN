@@ -18,17 +18,19 @@ const BOOKS: Source[] = [
   { id: 'xero',       glyph: 'X',  name: 'Xero',       desc: 'Invoices, bills & categories' },
 ]
 
-type Step     = 'pick' | 'done'
+type Step      = 'pick' | 'done'
 type ConnState = 'idle' | 'connecting' | 'connected' | 'error'
 
 export function ConnectBankClient() {
   const router = useRouter()
-  const { locale } = useLocale()
-  const [step,   setStep]   = useState<Step>('pick')
-  const [states, setStates] = useState<Record<SrcId, ConnState>>({
+  const { t }  = useLocale()
+  const cb     = t.connectBank
+
+  const [step,          setStep]          = useState<Step>('pick')
+  const [states,        setStates]        = useState<Record<SrcId, ConnState>>({
     bog: 'idle', tbc: 'idle', nbg: 'idle', quickbooks: 'idle', xero: 'idle',
   })
-  const [skipped, setSkipped] = useState(false)
+  const [skipped,       setSkipped]       = useState(false)
   const [loadingSample, setLoadingSample] = useState(false)
 
   const connected = (Object.values(states) as ConnState[]).filter(s => s === 'connected').length
@@ -67,19 +69,15 @@ export function ConnectBankClient() {
     router.push('/ask')
   }
 
-  const STARTERS = locale === 'ka'
-    ? ['რამდენ ხანს გავუძლებ?', 'რა არის ჩემი მთავარი ხარჯი?', 'მომგებიანი ვარ?']
-    : ['How long is my runway?', "What's my biggest expense?", 'Am I profitable yet?']
-
   if (step === 'done') {
     return (
       <div className="done-main">
         <div className="steps">
-          <span className="step done"><span className="n">✓</span><span className="lbl">{locale === 'ka' ? 'ანგარიში' : 'Create account'}</span></span>
+          <span className="step done"><span className="n">✓</span><span className="lbl">{cb.stepAccount}</span></span>
           <span className="sline" />
-          <span className="step done"><span className="n">✓</span><span className="lbl">{locale === 'ka' ? 'ბანკი' : 'Connect bank'}</span></span>
+          <span className="step done"><span className="n">✓</span><span className="lbl">{cb.stepBank}</span></span>
           <span className="sline" />
-          <span className="step active"><span className="n">3</span><span className="lbl">{locale === 'ka' ? 'ჰკითხე' : 'Ask away'}</span></span>
+          <span className="step active"><span className="n">3</span><span className="lbl">{cb.stepAsk}</span></span>
         </div>
 
         <div className="done-seal">
@@ -87,14 +85,11 @@ export function ConnectBankClient() {
         </div>
 
         <h2 className="serif">
-          {locale === 'ka' ? <>შიგნით ხარ. დასვი <span className="em">პირველი შეკითხვა</span>.</> : <>You're in. Ask your <span className="em">first question</span>.</>}
+          {cb.doneHeadPre}<span className="em">{cb.doneHeadEm}</span>{cb.doneHeadPost}
         </h2>
 
         <p className="lead">
-          {skipped
-            ? (locale === 'ka' ? 'სცადე Fain სადემო მონაცემებით — ბანკი ნებისმიერ დროს შეგიძლია დაუკავშირო.' : 'Try Fain with sample data — connect a real bank anytime from Settings.')
-            : (locale === 'ka' ? 'ანგარიშები სინქრონიზდება — პასუხები წუთებში იქნება მზად.' : 'Your accounts are syncing — first answers are ready in about a minute.')
-          }
+          {skipped ? cb.doneSkipped : cb.doneSyncing}
         </p>
 
         {skipped && (
@@ -106,13 +101,13 @@ export function ConnectBankClient() {
               onClick={handleLoadSample}
               style={{ fontSize: 13 }}
             >
-              {locale === 'ka' ? '📊 სადემო მონაცემების ჩატვირთვა' : '📊 Load sample company data'}
+              {cb.loadSample}
             </Button>
           </div>
         )}
 
         <div className="done-chips">
-          {STARTERS.map(q => (
+          {cb.starters.map(q => (
             <button key={q} className="chip" onClick={() => router.push(`/ask?q=${encodeURIComponent(q)}`)}>
               {q}
             </button>
@@ -120,7 +115,7 @@ export function ConnectBankClient() {
         </div>
 
         <Button onClick={() => router.push('/ask')} style={{ marginTop: 24 }}>
-          {locale === 'ka' ? 'Fain-ზე გადასვლა' : 'Go to Fain'}
+          {cb.goToFain}
         </Button>
       </div>
     )
@@ -129,41 +124,36 @@ export function ConnectBankClient() {
   return (
     <div className="connect-main">
       <div className="steps">
-        <span className="step done"><span className="n">✓</span><span className="lbl">{locale === 'ka' ? 'ანგარიში' : 'Create account'}</span></span>
+        <span className="step done"><span className="n">✓</span><span className="lbl">{cb.stepAccount}</span></span>
         <span className="sline" />
-        <span className="step active"><span className="n">2</span><span className="lbl">{locale === 'ka' ? 'ბანკის დაკავშირება' : 'Connect your bank'}</span></span>
+        <span className="step active"><span className="n">2</span><span className="lbl">{cb.stepBankLong}</span></span>
         <span className="sline" />
-        <span className="step"><span className="n">3</span><span className="lbl">{locale === 'ka' ? 'ჰკითხე' : 'Ask away'}</span></span>
+        <span className="step"><span className="n">3</span><span className="lbl">{cb.stepAsk}</span></span>
       </div>
 
       <h2 className="serif">
-        {locale === 'ka' ? <>ახლა, დაუკავშირე შენი <span className="em">ციფრები</span>.</> : <>Now, connect your <span className="em">numbers</span>.</>}
+        {cb.pickHeadPre}<span className="em">{cb.pickHeadEm}</span>{cb.pickHeadPost}
       </h2>
-      <p className="lead">
-        {locale === 'ka' ? 'დააკავშირე მინიმუმ ერთი ანგარიში. კავშირი მხოლოდ წაკითხვისთვისაა — Fain ვერ ახდენს გადარიცხვას.' : 'Link at least one account. Connections are read-only — Fain can see your numbers, never touch them.'}
-      </p>
+      <p className="lead">{cb.pickLead}</p>
 
-      <SrcGroup label={locale === 'ka' ? 'ბანკები' : 'Banks'} sources={BANKS} states={states} onConnect={connect} onDisconnect={disconnect} locale={locale} />
-      <SrcGroup label={locale === 'ka' ? 'ბუღალტერია' : 'Books'} sources={BOOKS} states={states} onConnect={connect} onDisconnect={disconnect} locale={locale} />
+      <SrcGroup label={cb.banks} sources={BANKS} states={states} onConnect={connect} onDisconnect={disconnect} />
+      <SrcGroup label={cb.books} sources={BOOKS} states={states} onConnect={connect} onDisconnect={disconnect} />
 
       <div className="assure">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
-        <span>{locale === 'ka' ? 'Fain კითხულობს ნაშთებს და ოპერაციებს. ვერ ახდენს გადარიცხვას, ვერ ხედავს პაროლს.' : 'Fain reads balances and transactions through audited, bank-grade connections. It can never move money, and it never sees your bank password.'}</span>
+        <span>{cb.assure}</span>
       </div>
 
       <div className="connect-actions">
         <span className="count">
-          {connected === 0
-            ? (locale === 'ka' ? 'ანგარიში ჯერ არ არის დაკავშირებული' : 'No accounts connected yet')
-            : `${connected} ${locale === 'ka' ? 'წყარო' : `source${connected > 1 ? 's' : ''}`} ${locale === 'ka' ? 'დაკავშირებულია' : 'connected'}`
-          }
+          {connected === 0 ? cb.noConnected : cb.sourcesConnected(connected)}
         </span>
         <span className="right">
           <Button variant="ghost" onClick={handleSkip}>
-            {locale === 'ka' ? 'გამოტოვება' : 'Skip for now'}
+            {cb.skip}
           </Button>
           <Button disabled={connected === 0} onClick={() => setStep('done')}>
-            {locale === 'ka' ? 'გაგრძელება' : 'Continue'}
+            {cb.continue}
           </Button>
         </span>
       </div>
@@ -171,14 +161,16 @@ export function ConnectBankClient() {
   )
 }
 
-function SrcGroup({ label, sources, states, onConnect, onDisconnect, locale }: {
+function SrcGroup({ label, sources, states, onConnect, onDisconnect }: {
   label: string
   sources: Source[]
   states: Record<SrcId, ConnState>
   onConnect: (s: Source) => void
   onDisconnect: (s: Source) => void
-  locale: 'en' | 'ka'
 }) {
+  const { t } = useLocale()
+  const cb    = t.connectBank
+
   return (
     <div className="src-group">
       <p className="gh">{label}</p>
@@ -193,18 +185,18 @@ function SrcGroup({ label, sources, states, onConnect, onDisconnect, locale }: {
               <span className="meta">
                 <span className="nm">{src.name}</span>
                 <span className="ds">{src.desc}</span>
-                {isConn && <span className="status"><span className="dot" />{locale === 'ka' ? 'დაკავშირებულია' : 'Read-only · synced just now'}</span>}
-                {isErr  && <span className="status" style={{ color: 'var(--neg)' }}>{locale === 'ka' ? 'კავშირი ვერ მოხერხდა' : 'Connection failed — try again'}</span>}
+                {isConn && <span className="status"><span className="dot" />{cb.srcConnected}</span>}
+                {isErr  && <span className="status" style={{ color: 'var(--neg)' }}>{cb.srcError}</span>}
               </span>
               <span className="act">
                 {!isConn && (
                   <Button variant="outline" size="sm" loading={state === 'connecting'} onClick={() => onConnect(src)}>
-                    {isErr ? (locale === 'ka' ? 'სცადე' : 'Retry') : (locale === 'ka' ? 'დაკავშირება' : 'Connect')}
+                    {isErr ? cb.srcRetry : cb.srcConnect}
                   </Button>
                 )}
                 {isConn && (
                   <button className="btn-done" type="button" onClick={() => onDisconnect(src)}>
-                    {locale === 'ka' ? 'გათიშვა' : 'Disconnect'}
+                    {cb.srcDisconnect}
                   </button>
                 )}
               </span>

@@ -101,41 +101,143 @@ export async function getCashPosition(accountIds?: string[]): Promise<CashPositi
 }
 
 // ── AI context summary ────────────────────────────────────
-// Returns a compact, anonymised summary safe to send to the Claude API.
-// Never includes merchant names, raw transaction IDs, or personal identifiers.
+// Returns a structured, anonymised summary safe to send to the Claude API.
+// Privacy contract: never includes raw transaction IDs, account numbers,
+// merchant names, or personal identifiers. Only category-level aggregates
+// and monthly totals.
+
+function fmt(n: number): string {
+  return n.toLocaleString('en-US', { maximumFractionDigits: 0 })
+}
 
 export async function buildAiContext(
   accountIds: string[],
   from: Date,
   to: Date
 ): Promise<string> {
-  const [position, categories, monthly] = await Promise.all([
+  const db = getDb()
+
+  // ── Gather all data in parallel ──────────────────────────
+  const monthList: { year: number; month: number }[] = []
+  const cursor = new Date(from)
+  while (cursor <= to) {
+    monthList.push({ year: cursor.getFullYear(), month: cursor.getMonth() + 1 })
+    cursor.setMonth(cursor.getMonth() + 1)
+  }
+
+  // 6-month window for category detail (more recent = more relevant)
+  const sixMonthsAgo = new Date(to)
+  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
+  const catFrom = sixMonthsAgo < from ? from : sixMonthsAgo
+
+  const [position, expenseCategories, incomeCategories, monthly, accounts] = await Promise.all([
     getCashPosition(accountIds),
-    getTransactionsByCategory(accountIds, from, to),
+    getTransactionsByCategory(accountIds, catFrom, to),
+    // Income breakdown (credits)
     (async () => {
-      const months: { year: number; month: number }[] = []
-      const cursor = new Date(from)
-      while (cursor <= to) {
-        months.push({ year: cursor.getFullYear(), month: cursor.getMonth() + 1 })
-        cursor.setMonth(cursor.getMonth() + 1)
+      const txs = await getTransactionsByRange(accountIds, catFrom, to)
+      const credits = txs.filter(tx => tx.type === 'credit')
+      const total   = credits.reduce((s, tx) => s + tx.amount, 0)
+      const byCat: Record<string, number> = {}
+      for (const tx of credits) {
+        const cat = tx.category ?? 'Uncategorised'
+        byCat[cat] = (byCat[cat] ?? 0) + tx.amount
       }
-      return getMonthlyTotals(accountIds, months)
+      return Object.entries(byCat)
+        .map(([category, amount]) => ({ category, amount, pct: total > 0 ? (amount / total) * 100 : 0 }))
+        .sort((a, b) => b.amount - a.amount)
     })(),
+    getMonthlyTotals(accountIds, monthList),
+    db.accounts.where('id').anyOf(accountIds).toArray(),
   ])
 
-  const lines = [
-    `Current cash: ₾${position.totalCash.toLocaleString()} across ${accountIds.length} account(s).`,
+  // ── Key metrics ──────────────────────────────────────────
+  const n          = monthly.length
+  const avgRevenue = n ? monthly.reduce((s, m) => s + m.income,   0) / n : 0
+  const avgBurn    = n ? monthly.reduce((s, m) => s + m.expenses, 0) / n : 0
+  const avgNet     = avgRevenue - avgBurn
+
+  // Runway: only meaningful if net burn is negative (cash is depleting)
+  const netBurnPerMonth = avgBurn - avgRevenue   // positive = losing cash
+  const runwayMonths    = netBurnPerMonth > 0
+    ? Math.floor(position.totalCash / netBurnPerMonth)
+    : null   // null = cash-positive / growing
+
+  // MoM signal: last month vs prior month
+  const last  = monthly.at(-1)
+  const prior = monthly.at(-2)
+
+  // Account type summary (no IDs or names)
+  const typeCount: Record<string, number> = {}
+  for (const acc of accounts) {
+    typeCount[acc.type] = (typeCount[acc.type] ?? 0) + 1
+  }
+  const accountSummary = Object.entries(typeCount)
+    .map(([type, count]) => `${count} ${type}`)
+    .join(', ')
+
+  // ── Build output ─────────────────────────────────────────
+  const today      = new Date().toISOString().split('T')[0]
+  const periodFrom = `${from.toLocaleString('en-US', { month: 'short', year: 'numeric' })}`
+  const periodTo   = `${to.toLocaleString('en-US',   { month: 'short', year: 'numeric' })}`
+
+  const lines: string[] = [
+    '=== FAIN FINANCIAL CONTEXT ===',
+    `As of: ${today}`,
+    `Period: ${periodFrom} – ${periodTo} (${n} months)`,
     '',
-    'Monthly income vs expenses (₾):',
-    ...monthly.map((m) =>
-      `  ${m.year}-${String(m.month).padStart(2, '0')}: income ₾${m.income.toLocaleString()}, expenses ₾${m.expenses.toLocaleString()}, net ₾${m.net.toLocaleString()}`
-    ),
+    'ACCOUNTS',
+    `  Breakdown: ${accountSummary || `${accountIds.length} account(s)`}`,
+    `  Total cash on hand: ₾${fmt(position.totalCash)}`,
     '',
-    'Top spending categories (period total, ₾):',
-    ...categories.slice(0, 10).map((c) =>
-      `  ${c.category}: ₾${c.amount.toLocaleString()} (${c.percentage.toFixed(1)}%)`
-    ),
+    `TRAILING AVERAGES (${n}-month)`,
+    `  Avg monthly revenue:  ₾${fmt(avgRevenue)}`,
+    `  Avg monthly expenses: ₾${fmt(avgBurn)}`,
+    `  Avg net cash flow:    ${avgNet >= 0 ? '+' : ''}₾${fmt(avgNet)}/mo`,
+    runwayMonths !== null
+      ? `  Runway at current burn: ${runwayMonths} month${runwayMonths !== 1 ? 's' : ''}`
+      : `  Runway: cash-positive (revenue exceeds expenses on average)`,
+    '',
   ]
+
+  if (last && prior) {
+    lines.push('RECENT MONTHS')
+    lines.push(
+      `  ${prior.year}-${String(prior.month).padStart(2,'0')}: revenue ₾${fmt(prior.income)}, expenses ₾${fmt(prior.expenses)}, net ${prior.net >= 0 ? '+' : ''}₾${fmt(prior.net)}`
+    )
+    lines.push(
+      `  ${last.year}-${String(last.month).padStart(2,'0')}: revenue ₾${fmt(last.income)}, expenses ₾${fmt(last.expenses)}, net ${last.net >= 0 ? '+' : ''}₾${fmt(last.net)}`
+    )
+    // Trend signal
+    const burnTrend = last.expenses > prior.expenses ? '↑ burn increasing' : '↓ burn decreasing'
+    const revTrend  = last.income  > prior.income   ? '↑ revenue increasing' : '↓ revenue decreasing'
+    lines.push(`  Trend: ${revTrend}, ${burnTrend}`)
+    lines.push('')
+  }
+
+  lines.push(`MONTHLY HISTORY (${n} months, ₾):`)
+  for (const m of monthly) {
+    lines.push(
+      `  ${m.year}-${String(m.month).padStart(2,'0')}: revenue ₾${fmt(m.income)}, expenses ₾${fmt(m.expenses)}, net ${m.net >= 0 ? '+' : ''}₾${fmt(m.net)}`
+    )
+  }
+
+  lines.push('')
+  lines.push('TOP EXPENSE CATEGORIES (last 6 months):')
+  for (const c of expenseCategories.slice(0, 10)) {
+    lines.push(`  ${c.category}: ₾${fmt(c.amount)} (${c.percentage.toFixed(1)}%)`)
+  }
+
+  if (incomeCategories.length > 0) {
+    lines.push('')
+    lines.push('TOP INCOME SOURCES (last 6 months):')
+    for (const c of incomeCategories.slice(0, 5)) {
+      lines.push(`  ${c.category}: ₾${fmt(c.amount)} (${c.pct.toFixed(1)}%)`)
+    }
+  }
+
+  lines.push('')
+  lines.push('NOTE: This context contains only aggregated category totals and monthly summaries. Raw transactions, account numbers, and merchant names are never sent.')
 
   return lines.join('\n')
 }
