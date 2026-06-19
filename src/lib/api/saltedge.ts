@@ -23,20 +23,27 @@ async function saltEdgeFetch<T>(path: string, options?: RequestInit): Promise<T>
 }
 
 // ── Customer (Salt Edge requires a customer object per user) ──────────────
+// v6 response uses `customer_id` (not `id`) for the SE-assigned customer ID
+
+interface SECustomer {
+  customer_id: string
+  identifier:  string
+}
+
 export async function createCustomer(identifier: string) {
-  return saltEdgeFetch<{ id: string; identifier: string }>('/customers', {
+  return saltEdgeFetch<SECustomer>('/customers', {
     method: 'POST',
     body:   JSON.stringify({ data: { identifier } }),
   })
 }
 
 export async function getCustomer(customerId: string) {
-  return saltEdgeFetch<{ id: string; identifier: string }>(`/customers/${customerId}`)
+  return saltEdgeFetch<SECustomer>(`/customers/${customerId}`)
 }
 
 /** Look up an existing customer by the identifier we passed at creation time. */
 export async function getCustomerByIdentifier(identifier: string) {
-  const results = await saltEdgeFetch<{ id: string; identifier: string }[]>(`/customers?identifier=${encodeURIComponent(identifier)}`)
+  const results = await saltEdgeFetch<SECustomer[]>(`/customers?identifier=${encodeURIComponent(identifier)}`)
   const arr = Array.isArray(results) ? results : [results]
   if (arr.length === 0) throw new Error(`Salt Edge: no customer found for identifier ${identifier}`)
   return arr[0]!

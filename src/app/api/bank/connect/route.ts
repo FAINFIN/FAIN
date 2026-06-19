@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
           throw createErr  // Re-throw original error if lookup also fails
         }
       }
-      saltEdgeCustomerId = customer.id  // Salt Edge's own UUID — NOT our identifier
+      saltEdgeCustomerId = customer.customer_id  // Salt Edge v6: field is `customer_id` not `id`
 
       // Insert a pending row so subsequent connects (or reconnects) reuse this customer ID
       await db.insert(bankConnections).values({
