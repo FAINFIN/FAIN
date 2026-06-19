@@ -9,9 +9,10 @@
     "lint": "next lint",
     "format": "prettier --write .",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate",
+    "db:migrate": "node scripts/migrate.mjs",
     "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "build:ci": "node scripts/migrate.mjs && next build"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.105.0",

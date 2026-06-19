@@ -13,3 +13,9 @@ next-env.d.ts
 *\ 2.json
 *\ 2.js
 
+# pnpm content-addressable store (ephemeral in CI)
+.pnpm-store/
+
+# Cowork skill bundles
+*.skill
+fain-tokens.json

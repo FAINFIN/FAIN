@@ -4,7 +4,8 @@
  * Better Auth manages: user, session, account, verification, passkey, twoFactor
  * We own: waitlist, userProfiles, bankConnections, syncLog
  *
- * Financial transaction data stays in the browser (IndexedDB) — never here.
+ * ⚠️  Financial transaction data stays in the browser (IndexedDB) — NEVER here.
+ *     This file must never contain bank accounts or transaction tables.
  */
 import {
   pgTable,
@@ -13,8 +14,6 @@ import {
   timestamp,
   integer,
   jsonb,
-  numeric,
-  index,
 } from 'drizzle-orm/pg-core'
 
 // ═══════════════════════════════════════════════════════════════════
@@ -175,70 +174,6 @@ export const bankConnections = pgTable('bank_connections', {
   createdAt:            timestamp('created_at').defaultNow().notNull(),
 })
 
-// ─── Bank accounts (synced from Salt Edge) ────────────────────────────────
-// These mirror the accounts inside each bank connection and enable server-side
-// balance queries and cross-account analytics without browser-only IndexedDB.
-export const bankAccounts = pgTable('bank_accounts', {
-  id:                  text('id').primaryKey(),       // nanoid
-  userId:              text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
-  connectionId:        text('connection_id').notNull().references(() => bankConnections.id, { onDelete: 'cascade' }),
-  saltEdgeAccountId:   text('salt_edge_account_id').notNull().unique(),
-
-  name:                text('name').notNull(),        // display name from bank
-  nature:              text('nature'),                // 'account' | 'card' | 'loan' | 'savings' | 'checking'
-  currency:            text('currency').notNull().default('GEL'),
-  balance:             numeric('balance').notNull().default('0'),
-  availableBalance:    numeric('available_balance'),
-  creditLimit:         numeric('credit_limit'),
-
-  iban:                text('iban'),
-  cardNumberLast4:     text('card_number_last4'),
-  balanceUpdatedAt:    timestamp('balance_updated_at'),
-
-  extra:               jsonb('extra'),                // raw extra object from Salt Edge
-
-  createdAt:           timestamp('created_at').defaultNow().notNull(),
-  updatedAt:           timestamp('updated_at').defaultNow().notNull(),
-}, (t) => [
-  index('ba_user_idx').on(t.userId),
-  index('ba_conn_idx').on(t.connectionId),
-])
-
-// ─── Transactions (synced from Salt Edge) ─────────────────────────────────
-// Server-side store enables live analytics, AI categorisation, and cross-device
-// access without re-fetching from Salt Edge on every page load.
-// For large transaction volumes, consider enabling the TimescaleDB extension on
-// Neon and converting this table to a hypertable (chunk by `made_on`).
-export const transactions = pgTable('transactions', {
-  id:                       text('id').primaryKey(),  // nanoid
-  userId:                   text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
-  bankAccountId:            text('bank_account_id').notNull().references(() => bankAccounts.id, { onDelete: 'cascade' }),
-  saltEdgeTransactionId:    text('salt_edge_transaction_id').unique(),
-
-  amount:                   numeric('amount').notNull(),
-  currencyCode:             text('currency_code').notNull().default('GEL'),
-  description:              text('description'),      // cleaned payee / narration
-  rawDescription:           text('raw_description'),  // original from bank
-
-  // Categories
-  category:                 text('category'),         // raw category from Salt Edge
-  aiCategory:               text('ai_category'),      // our AI-assigned category
-  aiSubcategory:            text('ai_subcategory'),   // more specific bucket
-  aiConfidence:             numeric('ai_confidence'), // 0–1
-
-  madeOn:                   timestamp('made_on').notNull(),
-  status:                   text('status').notNull().default('posted'), // posted | pending
-
-  extra:                    jsonb('extra'),            // raw extra from Salt Edge
-
-  createdAt:                timestamp('created_at').defaultNow().notNull(),
-}, (t) => [
-  index('tx_user_idx').on(t.userId),
-  index('tx_account_idx').on(t.bankAccountId),
-  index('tx_made_on_idx').on(t.madeOn),             // range-query perf for analytics
-  index('tx_category_idx').on(t.aiCategory),
-])
-
 // Sync log
 export const syncLog = pgTable('sync_log', {
   id:                text('id').primaryKey(),        // nanoid
@@ -266,8 +201,4 @@ export type UserProfile       = typeof userProfiles.$inferSelect
 export type NewUserProfile    = typeof userProfiles.$inferInsert
 export type BankConnection    = typeof bankConnections.$inferSelect
 export type NewBankConnection = typeof bankConnections.$inferInsert
-export type BankAccount       = typeof bankAccounts.$inferSelect
-export type NewBankAccount    = typeof bankAccounts.$inferInsert
-export type Transaction       = typeof transactions.$inferSelect
-export type NewTransaction    = typeof transactions.$inferInsert
 export type SyncLog           = typeof syncLog.$inferSelect
