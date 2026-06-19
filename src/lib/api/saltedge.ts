@@ -33,6 +33,11 @@ export async function getCustomer(customerId: string) {
   return saltEdgeFetch<{ id: string; identifier: string }>(`/customers/${customerId}`)
 }
 
+/** Look up an existing customer by the identifier we passed at creation time. */
+export async function getCustomerByIdentifier(identifier: string) {
+  return saltEdgeFetch<{ id: string; identifier: string }>(`/customers?identifier=${encodeURIComponent(identifier)}`)
+}
+
 // ── Connect session ───────────────────────────────────────────────────────
 export async function createConnectSession(customerId: string, returnTo: string) {
   return saltEdgeFetch<{ connect_url: string; expires_at: string }>('/connect_sessions/create', {
