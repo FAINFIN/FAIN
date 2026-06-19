@@ -1,4 +1,4 @@
-const BASE_URL = 'https://www.saltedge.com/api/v5'
+const BASE_URL = 'https://www.saltedge.com/api/v6'
 
 function getHeaders() {
   return {
@@ -35,7 +35,10 @@ export async function getCustomer(customerId: string) {
 
 /** Look up an existing customer by the identifier we passed at creation time. */
 export async function getCustomerByIdentifier(identifier: string) {
-  return saltEdgeFetch<{ id: string; identifier: string }>(`/customers?identifier=${encodeURIComponent(identifier)}`)
+  const results = await saltEdgeFetch<{ id: string; identifier: string }[]>(`/customers?identifier=${encodeURIComponent(identifier)}`)
+  const arr = Array.isArray(results) ? results : [results]
+  if (arr.length === 0) throw new Error(`Salt Edge: no customer found for identifier ${identifier}`)
+  return arr[0]!
 }
 
 // ── Connect session ───────────────────────────────────────────────────────
