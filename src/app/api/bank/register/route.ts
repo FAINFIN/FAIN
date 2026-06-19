@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
         expiresAt:            new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
         lastSyncedAt:         new Date(),
       })
-      .where(eq(bankConnections.id, pendingRows[0].id))
+      .where(eq(bankConnections.id, pendingRows[0]!.id))
   } else {
     // Fallback: no pending row exists (e.g. race condition or direct callback hit).
     // This path should be rare — the saltEdgeCustomerId will be wrong here,

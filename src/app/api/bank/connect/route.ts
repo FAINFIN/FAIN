@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
 
     if (existingRows.length > 0) {
       // Reuse the Salt Edge customer ID we stored from the first connect attempt
-      saltEdgeCustomerId = existingRows[0].saltEdgeCustomerId
+      saltEdgeCustomerId = existingRows[0]!.saltEdgeCustomerId
     } else {
       // First time: create a Salt Edge customer and store the real SE-assigned ID
       const identifier = userId.replace(/[^a-z0-9_-]/gi, '_')
