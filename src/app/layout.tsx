@@ -1,4 +1,6 @@
 import type { Metadata, Viewport } from 'next'
+import { Analytics } from '@vercel/analytics/next'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 import { LocaleProvider } from '@/lib/i18n/LocaleContext'
 import { LocaleBody } from '@/components/ui/LocaleBody'
 import { ServiceWorkerRegistration } from '@/components/ui/ServiceWorker'
@@ -45,6 +47,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             {children}
           </ToastProvider>
         </LocaleProvider>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   )
