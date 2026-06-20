@@ -14,13 +14,26 @@ export function SettingsClient() {
   const router    = useRouter()
   const { locale, t, setLocale } = useLocale()
   const s = t.settings
-  const [clearing, setClearing] = useState(false)
-  const [isSample, setIsSample] = useState(false)
+  const [clearing,      setClearing]      = useState(false)
+  const [loadingDemo,   setLoadingDemo]   = useState(false)
+  const [isSample,      setIsSample]      = useState(false)
 
   const connections = useLiveQuery(() => getDb().connections.toArray())
   const accounts    = useLiveQuery(() => getDb().accounts.toArray())
 
-  useEffect(() => { isSampleData().then(setIsSample) }, [])
+  useEffect(() => { isSampleData().then(setIsSample) }, [connections])
+
+  async function handleLoadDemo() {
+    setLoadingDemo(true)
+    try {
+      const { loadSampleData } = await import('@/lib/db/sampleData')
+      await loadSampleData(true) // force=true so it reloads even if data exists
+      setIsSample(true)
+    } catch (e) {
+      console.error('[settings] demo data load failed:', e)
+    }
+    setLoadingDemo(false)
+  }
 
   async function clearAllData() {
     if (!confirm(s.clearData + '?')) return
@@ -118,6 +131,27 @@ export function SettingsClient() {
             })}
           </div>
         )}
+      </Card>
+
+      {/* Demo data */}
+      <Card>
+        <CardHeader><CardTitle>Demo Data</CardTitle></CardHeader>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <p style={{ margin: 0, fontSize: 14, color: 'var(--text-low)', lineHeight: 1.6 }}>
+            Load 24 months of realistic Georgian SME data (TechFlow Georgia) to explore the app without connecting a real bank.
+            {isSample && <span style={{ color: 'var(--pos)', marginLeft: 6 }}>● Demo data active</span>}
+          </p>
+          <div>
+            <Button
+              variant="outline"
+              size="sm"
+              loading={loadingDemo}
+              onClick={handleLoadDemo}
+            >
+              {isSample ? '↺ Reload Demo Data' : '⚡ Load Demo Data'}
+            </Button>
+          </div>
+        </div>
       </Card>
 
       {/* Language */}

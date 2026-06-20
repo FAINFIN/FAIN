@@ -19,7 +19,7 @@ const BOOKS: Source[] = [
 ]
 
 type Step      = 'pick' | 'done'
-type ConnState = 'idle' | 'connecting' | 'connected' | 'error'
+type ConnState = 'idle' | 'connecting' | 'connected' | 'error' | 'soon'
 
 export function ConnectBankClient() {
   const router = useRouter()
@@ -27,8 +27,9 @@ export function ConnectBankClient() {
   const cb     = t.connectBank
 
   const [step,          setStep]          = useState<Step>('pick')
+  // Georgian banks are "coming soon" — direct XS2A integration via openfinance.ge is in progress
   const [states,        setStates]        = useState<Record<SrcId, ConnState>>({
-    bog: 'idle', tbc: 'idle', nbg: 'idle', quickbooks: 'idle', xero: 'idle',
+    bog: 'soon', tbc: 'soon', nbg: 'soon', quickbooks: 'idle', xero: 'idle',
   })
   const [skipped,       setSkipped]       = useState(false)
   const [loadingSample, setLoadingSample] = useState(false)
@@ -36,6 +37,11 @@ export function ConnectBankClient() {
   const connected = (Object.values(states) as ConnState[]).filter(s => s === 'connected').length
 
   async function connect(src: Source) {
+    // Georgian banks use the openfinance.ge XS2A standard — direct integration coming soon
+    if (src.id === 'bog' || src.id === 'tbc' || src.id === 'nbg') {
+      setStates(s => ({ ...s, [src.id]: 'soon' }))
+      return
+    }
     setStates(s => ({ ...s, [src.id]: 'connecting' }))
     try {
       const res = await fetch('/api/bank/connect', { method: 'POST' })
@@ -179,17 +185,23 @@ function SrcGroup({ label, sources, states, onConnect, onDisconnect }: {
           const state  = states[src.id]
           const isConn = state === 'connected'
           const isErr  = state === 'error'
+          const isSoon = state === 'soon'
           return (
-            <div key={src.id} className={`src${isConn ? ' connected' : ''}${isErr ? ' error' : ''}`}>
+            <div key={src.id} className={`src${isConn ? ' connected' : ''}${isErr ? ' error' : ''}`}
+              style={isSoon ? { opacity: 0.65 } : undefined}>
               <span className="glyph">{src.glyph}</span>
               <span className="meta">
                 <span className="nm">{src.name}</span>
                 <span className="ds">{src.desc}</span>
                 {isConn && <span className="status"><span className="dot" />{cb.srcConnected}</span>}
                 {isErr  && <span className="status" style={{ color: 'var(--neg)' }}>{cb.srcError}</span>}
+                {isSoon && <span className="status" style={{ color: 'var(--text-low)' }}>Direct API integration coming soon</span>}
               </span>
               <span className="act">
-                {!isConn && (
+                {isSoon && (
+                  <span style={{ fontSize: 11, color: 'var(--text-low)', fontStyle: 'italic' }}>Soon</span>
+                )}
+                {!isConn && !isSoon && (
                   <Button variant="outline" size="sm" loading={state === 'connecting'} onClick={() => onConnect(src)}>
                     {isErr ? cb.srcRetry : cb.srcConnect}
                   </Button>
