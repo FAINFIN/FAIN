@@ -61,7 +61,7 @@ function MessageRow({
   if (isStreaming) {
     return (
       <div className="chat-row">
-        <div className="fain-mark" aria-hidden="true" />
+        <div className="fain-mark" aria-hidden="true">f</div>
         <div className="chat-bubble chat-bubble--ai" style={{ padding: '12px 16px' }}>
           <span className="typing-dots"><span /><span /><span /></span>
         </div>
@@ -72,7 +72,7 @@ function MessageRow({
   // ── AI: full structured response card ──
   return (
     <div className="chat-row chat-row--fain">
-      <div className="fain-mark" aria-hidden="true" />
+      <div className="fain-mark" aria-hidden="true">f</div>
       <FainResponse
         content={msg.content}
         onFollowUp={onFollowUp}

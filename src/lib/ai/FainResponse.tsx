@@ -106,18 +106,36 @@ function parseBlocks(content: string): Block[] {
   return blocks
 }
 
-// ─── Inline bold renderer ─────────────────────────────────────────────────────
+// ─── Lari glyph wrapper (Noto Sans Georgian) ─────────────────────────────────
+// Per design language: every ₾ must be wrapped in .lari for correct glyph rendering.
+function wrapLari(text: string): ReactNode[] {
+  const parts = text.split(/(₾)/g)
+  return parts.map((part, i) =>
+    part === '₾' ? <span key={i} className="lari">₾</span> : part
+  )
+}
+
+// ─── Inline bold + lari renderer ─────────────────────────────────────────────
 function Bold({ text }: { text: string }): ReactNode {
   const parts = text.split(/(\*\*[^*]+\*\*)/g)
   return (
     <>
       {parts.map((part, i) =>
         part.startsWith('**') && part.endsWith('**')
-          ? <strong key={i}>{part.slice(2, -2)}</strong>
-          : <span key={i}>{part}</span>
+          ? <strong key={i}>{wrapLari(part.slice(2, -2))}</strong>
+          : <span key={i}>{wrapLari(part)}</span>
       )}
     </>
   )
+}
+
+// ─── Numeric value renderer — lari + pos/neg color ───────────────────────────
+function NumVal({ text, className }: { text: string; className?: string }) {
+  const isPos = /^[+＋]/.test(text)
+  const isNeg = /^[-−–]/.test(text)
+  const colorCls = isPos ? 'pos' : isNeg ? 'neg' : ''
+  const cls = [className, colorCls].filter(Boolean).join(' ')
+  return <span className={cls || undefined}>{wrapLari(text)}</span>
 }
 
 // ─── Block components ─────────────────────────────────────────────────────────
@@ -140,7 +158,7 @@ function MetricsBlock({ rows }: { rows: MetricRow[] }) {
       {rows.map((r, i) => (
         <div key={i} className="ans-metric ans-dcard">
           <span className="ans-metric-k">{r.label}</span>
-          <span className="ans-metric-v">{r.value}</span>
+          <NumVal text={r.value} className="ans-metric-v" />
           {r.detail && <span className="ans-metric-d">{r.detail}</span>}
         </div>
       ))}
@@ -185,7 +203,7 @@ function HbarsBlock({ rows }: { rows: HbarRow[] }) {
               style={{ width: `${(r.pctNum / max) * 100}%` }}
             />
           </div>
-          <span className="ans-hbar-amount">{r.amount}</span>
+          <NumVal text={r.amount} className="ans-hbar-amount" />
         </div>
       ))}
     </div>
@@ -235,7 +253,7 @@ export function FainResponse({ content, onFollowUp, timestamp }: FainResponsePro
     <div className="ans-card">
       {/* ── Header ── */}
       <div className="ans-head">
-        <span className="ans-head-mark">fain.</span>
+        <span className="ans-head-mark">fain<span className="ans-head-fstop">.</span></span>
         <span className="ans-head-badge">
           <span className="ans-head-dot" aria-hidden="true" />
           category totals only

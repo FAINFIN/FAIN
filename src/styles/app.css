@@ -1025,6 +1025,9 @@
   letter-spacing: -0.02em;
   flex: 0 0 auto;
 }
+.ans-head-fstop {
+  color: var(--tan-9);
+}
 
 .ans-head-badge {
   display: inline-flex;
@@ -1060,16 +1063,16 @@
 
 /* ── Body wrapper ── */
 .ans-body {
-  padding: 18px 20px 22px;
+  padding: 20px 22px 24px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 18px;
 }
 
 /* ── Prose block ── */
 .ans-prose {
-  font-size: 15px;
-  line-height: 1.65;
+  font-size: 16px;
+  line-height: 1.55;
   color: var(--text-high);
 }
 .ans-prose p { margin: 0; }
@@ -1106,12 +1109,16 @@
 }
 .ans-metric-v {
   font-family: var(--font-num);
-  font-size: 23px;
+  font-size: 20px;
   font-weight: 600;
   color: var(--text-high);
   letter-spacing: -0.03em;
   line-height: 1;
   margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  font-feature-settings: "tnum" 1, "lnum" 1;
+  font-variant-numeric: tabular-nums lining-nums;
 }
 .ans-metric-d {
   font-size: 11.5px;
@@ -1247,6 +1254,8 @@
   color: var(--text-high);
   text-align: right;
   white-space: nowrap;
+  font-feature-settings: "tnum" 1, "lnum" 1;
+  font-variant-numeric: tabular-nums lining-nums;
 }
 
 /* ── Verdict / recommendation card ── */
@@ -1267,8 +1276,8 @@
 .ans-verdict p {
   margin: 0;
   font-size: 13.5px;
-  line-height: 1.65;
-  font-weight: 500;
+  line-height: 1.6;
+  font-weight: 400;
 }
 .ans-verdict strong {
   font-weight: 700;
@@ -1312,7 +1321,7 @@
   gap: 10px;
 }
 .chat-row--fain > .fain-mark {
-  margin-top: 10px; /* align mark with ans-head */
+  margin-top: 8px; /* center mark with ans-head strip */
   flex: 0 0 auto;
 }
 
@@ -1339,7 +1348,7 @@
 @media (max-width: 600px) {
   .ans-metrics { grid-template-columns: repeat(2, 1fr) !important; }
   .ans-hbar { grid-template-columns: 90px 1fr 58px; }
-  .ans-body { padding: 14px 14px 18px; }
+  .ans-body { padding: 16px 16px 20px; gap: 14px; }
   .ans-head { padding: 8px 14px; }
   .ans-head-badge { display: none; } /* save space on small screens */
   .ans-fu { font-size: 12px; padding: 6px 12px; }
