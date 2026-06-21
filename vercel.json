@@ -1,4 +1,12 @@
 {
   "buildCommand": "pnpm build:ci",
-  "framework": "nextjs"
+  "framework": "nextjs",
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "www.fain.ge" }],
+      "destination": "https://fain.ge/:path*",
+      "permanent": true
+    }
+  ]
 }
