@@ -1,5 +1,5 @@
-// Fain service worker — cache-first for shell, network-first for API
-const CACHE = 'fain-v2'
+// Fain service worker — cache-first for /_next/static/ only, network for everything else
+const CACHE = 'fain-v3'
 const SHELL = ['/manifest.json']
 
 self.addEventListener('install', e => {
@@ -20,27 +20,20 @@ self.addEventListener('fetch', e => {
   const { request } = e
   const url = new URL(request.url)
 
-  // 1. Navigation requests: always go to network so auth redirects work correctly.
-  //    Never intercept — the browser handles redirect: 'follow' natively for HTML navigation.
-  if (request.mode === 'navigate') {
-    return // let the browser handle it
-  }
+  // 1. Navigation requests: always let the browser handle them.
+  if (request.mode === 'navigate') return
 
-  // 2. API and auth routes: always network-first, no caching
-  if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/auth/')) {
-    e.respondWith(fetch(request).catch(() => new Response('', { status: 503 })))
-    return
-  }
+  // 2. Only cache immutable Next.js static chunks (/_next/static/).
+  //    Everything else — API routes, page RSC payloads, auth — goes straight to network.
+  if (!url.pathname.startsWith('/_next/static/')) return
 
-  // 3. Static assets only (JS, CSS, fonts, images): cache-first
-  //    Only cache same-origin GET requests with a clean (non-redirected) response
+  // 3. Cache-first for static assets
   if (request.method !== 'GET' || url.origin !== self.location.origin) return
 
   e.respondWith(
     caches.match(request).then(cached => {
       if (cached) return cached
       return fetch(request).then(res => {
-        // Never cache redirected or error responses
         if (res.ok && !res.redirected) {
           const clone = res.clone()
           caches.open(CACHE).then(c => c.put(request, clone))
