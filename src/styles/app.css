@@ -847,6 +847,12 @@
    SIDEBAR NAV (nav-based, replacing chat-first)
    ═══════════════════════════════════════════════════════════ */
 
+/* Nav links & compose button hover */
+.sidebar-nav-link:hover {
+  background: var(--stone-3) !important;
+  color: var(--text-high) !important;
+}
+
 /* Conversation links */
 .sidebar-conv-link:hover {
   background: var(--stone-3) !important;
