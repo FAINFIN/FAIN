@@ -31,36 +31,52 @@ export async function POST(req: NextRequest) {
     ? `<financial_context>\n${context}\n</financial_context>\n\n${message}`
     : message
 
+  const apiKey = process.env.ANTHROPIC_API_KEY
+  if (!apiKey) {
+    console.error('[ai/chat] ANTHROPIC_API_KEY is not set')
+    return NextResponse.json({ error: 'AI not configured' }, { status: 503 })
+  }
+
   // Lazy-init Anthropic inside the handler — never runs at build time
   const Anthropic = (await import('@anthropic-ai/sdk')).default
-  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+  const anthropic = new Anthropic({ apiKey })
 
-  // Stream the response
-  const stream = await anthropic.messages.stream({
-    model:      'claude-sonnet-4-6',
-    max_tokens: 1024,
-    system:     SYSTEM,
-    messages: [
-      ...history.slice(-12).map((m: {role: string; content: string}) => ({
-        role:    m.role as 'user' | 'assistant',
-        content: m.content,
-      })),
-      { role: 'user', content: userContent },
-    ],
-  })
+  let stream: Awaited<ReturnType<typeof anthropic.messages.stream>>
+  try {
+    stream = await anthropic.messages.stream({
+      model:      'claude-sonnet-4-6',
+      max_tokens: 1024,
+      system:     SYSTEM,
+      messages: [
+        ...history.slice(-12).map((m: {role: string; content: string}) => ({
+          role:    m.role as 'user' | 'assistant',
+          content: m.content,
+        })),
+        { role: 'user', content: userContent },
+      ],
+    })
+  } catch (e) {
+    console.error('[ai/chat] Anthropic stream init failed:', e)
+    return NextResponse.json({ error: 'AI unavailable' }, { status: 503 })
+  }
 
   // Return as a ReadableStream (Server-Sent Events compatible)
   const encoder = new TextEncoder()
   const readable = new ReadableStream({
     async start(controller) {
-      for await (const chunk of stream) {
-        if (chunk.type === 'content_block_delta' && chunk.delta.type === 'text_delta') {
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text: chunk.delta.text })}\n\n`))
+      try {
+        for await (const chunk of stream) {
+          if (chunk.type === 'content_block_delta' && chunk.delta.type === 'text_delta') {
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text: chunk.delta.text })}\n\n`))
+          }
         }
+        const final = await stream.finalMessage()
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ done: true, usage: final.usage })}\n\n`))
+        controller.close()
+      } catch (e) {
+        console.error('[ai/chat] stream error:', e)
+        controller.error(e)
       }
-      const final = await stream.finalMessage()
-      controller.enqueue(encoder.encode(`data: ${JSON.stringify({ done: true, usage: final.usage })}\n\n`))
-      controller.close()
     },
   })
 
