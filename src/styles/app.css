@@ -1222,7 +1222,7 @@
 }
 .ans-hbar {
   display: grid;
-  grid-template-columns: 110px 1fr 68px;
+  grid-template-columns: 110px 1fr auto;
   align-items: center;
   gap: 10px;
 }
@@ -1347,7 +1347,7 @@
 /* ── Mobile tweaks ── */
 @media (max-width: 600px) {
   .ans-metrics { grid-template-columns: repeat(2, 1fr) !important; }
-  .ans-hbar { grid-template-columns: 90px 1fr 58px; }
+  .ans-hbar { grid-template-columns: 90px 1fr auto; }
   .ans-body { padding: 16px 16px 20px; gap: 14px; }
   .ans-head { padding: 8px 14px; }
   .ans-head-badge { display: none; } /* save space on small screens */
