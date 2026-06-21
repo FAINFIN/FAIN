@@ -6,6 +6,7 @@ import { TopBar } from '@/components/app/TopBar'
 import { MobileNav } from '@/components/app/MobileNav'
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
 import { UserProvider } from '@/lib/auth/UserContext'
+import { UserGuard } from '@/components/app/UserGuard'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const session = await auth.api.getSession({ headers: await headers() })
@@ -19,6 +20,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <UserProvider user={user}>
+      <UserGuard />
       <div className="app-shell">
         <Sidebar user={user} />
         <div className="app-shell-content">

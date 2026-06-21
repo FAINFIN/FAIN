@@ -67,4 +67,21 @@ export function getDb(): FainDatabase {
   return _db
 }
 
+// ─── User data wipe ───────────────────────────────────────
+// Called on sign-out and whenever a different account is detected.
+// Clears every user-specific table so no data leaks between accounts.
+export async function clearUserData(): Promise<void> {
+  const db = getDb()
+  await Promise.all([
+    db.user.clear(),
+    db.connections.clear(),
+    db.accounts.clear(),
+    db.transactions.clear(),
+    db.syncMeta.clear(),
+    db.scenarios.clear(),
+    db.messages.clear(),
+    db.conversations.clear(),
+  ])
+}
+
 export type { FainDatabase, SyncMeta }

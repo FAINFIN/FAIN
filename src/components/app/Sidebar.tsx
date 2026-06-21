@@ -5,7 +5,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { Suspense } from 'react'
 import { authClient } from '@/lib/auth/client'
-import { getDb } from '@/lib/db/schema'
+import { getDb, clearUserData } from '@/lib/db/schema'
 import { useLocale } from '@/lib/i18n/LocaleContext'
 
 function formatConvDate(date: Date): string {
@@ -224,6 +224,10 @@ function SidebarInner({ user }: SidebarProps) {
   const firstName   = user.name?.split(' ')[0] ?? displayName
 
   async function handleSignOut() {
+    // Wipe all local data before signing out so the next user
+    // on this browser never sees this account's conversations or bank data.
+    localStorage.removeItem('fain.activeUser')
+    await clearUserData()
     await authClient.signOut()
     router.push('/')
   }
