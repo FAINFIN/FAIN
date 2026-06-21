@@ -45,6 +45,7 @@ export function useAiChat({
 
     // ── Create a conversation if this is the first message ──
     let convId = activeConvRef.current
+    let newConvTitle: string | null = null   // set when we create a new conversation
     if (!convId) {
       const newId = crypto.randomUUID()
       const title = text.length > 72 ? text.slice(0, 72) + '…' : text
@@ -57,7 +58,10 @@ export function useAiChat({
       } catch (e) { console.error('[chat] create conversation', e) }
       activeConvRef.current = newId
       convId = newId
-      onNewConversation?.(newId, title)
+      newConvTitle = title
+      // NOTE: onNewConversation is called AFTER streaming completes (below),
+      // so the router.replace doesn't fire mid-stream and trigger the
+      // conversationId useEffect that would overwrite the streaming state.
     }
 
     const userMsgId   = crypto.randomUUID()
@@ -132,6 +136,11 @@ export function useAiChat({
       setMessages(prev => prev.filter(m => m.id !== assistantId))
     } finally {
       setStreaming(false)
+      // Update URL after streaming is done — doing it earlier would trigger
+      // the conversationId useEffect and wipe the in-progress stream from state.
+      if (newConvTitle !== null) {
+        onNewConversation?.(convId!, newConvTitle)
+      }
     }
   }, [messages, onNewConversation])
 
