@@ -3,10 +3,42 @@
 import Link from 'next/link'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { Suspense } from 'react'
+import { Suspense, useState, useEffect, useCallback } from 'react'
 import { authClient } from '@/lib/auth/client'
 import { getDb } from '@/lib/db/schema'
 import { useLocale } from '@/lib/i18n/LocaleContext'
+
+// ─── Server-backed conversation list ─────────────────────────────────────────
+
+interface ConvItem {
+  id:        string
+  title:     string
+  updatedAt: string
+}
+
+function useServerConversations(activeConvId: string | null) {
+  const [conversations, setConversations] = useState<ConvItem[]>([])
+
+  const fetchConvs = useCallback(() => {
+    fetch('/api/conversations')
+      .then(r => r.ok ? r.json() : { conversations: [] })
+      .then(data => setConversations(data.conversations ?? []))
+      .catch(console.error)
+  }, [])
+
+  // Initial load
+  useEffect(() => { fetchConvs() }, [fetchConvs])
+
+  // Re-fetch when a new conversation is created from anywhere in the app
+  useEffect(() => {
+    window.addEventListener('fain:new-conversation', fetchConvs)
+    return () => window.removeEventListener('fain:new-conversation', fetchConvs)
+  }, [fetchConvs])
+
+  return conversations
+}
+
+// ─── Date helper ──────────────────────────────────────────────────────────────
 
 function formatConvDate(date: Date): string {
   const now  = new Date()
@@ -209,13 +241,8 @@ function SidebarInner({ user }: SidebarProps) {
   const activeConvId = searchParams.get('c')
   const isAskActive  = pathname === '/ask' && !activeConvId
 
-  const connections = useLiveQuery(() => getDb().connections.toArray(), [], [])
-
-  const conversations = useLiveQuery(
-    () => getDb().conversations.orderBy('updatedAt').reverse().limit(20).toArray(),
-    [],
-    []
-  )
+  const connections   = useLiveQuery(() => getDb().connections.toArray(), [], [])
+  const conversations = useServerConversations(activeConvId)
 
   const initials = user.name
     ? user.name.split(' ').map(w => w[0]?.toUpperCase() ?? '').join('').slice(0, 2)
@@ -322,7 +349,7 @@ function SidebarInner({ user }: SidebarProps) {
                     {conv.title.length > 34 ? conv.title.slice(0, 34) + '…' : conv.title}
                   </span>
                   <span style={{ fontSize: 10.5, color: 'var(--text-low)', marginTop: 1 }}>
-                    {formatConvDate(conv.updatedAt)}
+                    {formatConvDate(new Date(conv.updatedAt))}
                   </span>
                 </button>
               )

@@ -2,10 +2,13 @@
  * Server-side Postgres schema (Neon + Drizzle).
  *
  * Better Auth manages: user, session, account, verification, passkey, twoFactor
- * We own: waitlist, userProfiles, bankConnections, syncLog
+ * We own: waitlist, userProfiles, bankConnections, syncLog, conversations, messages
  *
- * ⚠️  Financial transaction data stays in the browser (IndexedDB) — NEVER here.
- *     This file must never contain bank accounts or transaction tables.
+ * Conversations + messages are stored encrypted at rest (AES-256-GCM).
+ * Message content_enc and iv columns hold base64-encoded ciphertext/nonce.
+ *
+ * ⚠️  Raw bank account numbers and transaction details stay in the browser (IndexedDB).
+ *     Only AI chat history is stored here, always encrypted with FAIN_ENCRYPTION_KEY.
  */
 import {
   pgTable,
@@ -185,20 +188,49 @@ export const syncLog = pgTable('sync_log', {
   error:             text('error'),
 })
 
+// ─── AI Chat history (encrypted at rest) ──────────────────────────────────────
+
+// A conversation thread — belongs to one user.
+// Title is plain text (first message truncated); no PII in titles.
+export const conversations = pgTable('conversations', {
+  id:        text('id').primaryKey(),                   // nanoid / crypto.randomUUID()
+  userId:    text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  title:     text('title').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+})
+
+// A single message in a conversation.
+// content_enc = AES-256-GCM ciphertext (base64), iv = 12-byte GCM nonce (base64).
+// The 16-byte auth tag is appended to the ciphertext before base64 encoding.
+export const chatMessages = pgTable('chat_messages', {
+  id:             text('id').primaryKey(),              // nanoid
+  conversationId: text('conversation_id').notNull().references(() => conversations.id, { onDelete: 'cascade' }),
+  userId:         text('user_id').notNull(),            // denormalized for fast per-user queries + auth checks
+  role:           text('role').notNull(),               // 'user' | 'assistant'
+  contentEnc:     text('content_enc').notNull(),        // base64(ciphertext + 16-byte GCM tag)
+  iv:             text('iv').notNull(),                 // base64(12-byte nonce)
+  createdAt:      timestamp('created_at').defaultNow().notNull(),
+})
+
 // ═══════════════════════════════════════════════════════════════════
 // TYPES
 // ═══════════════════════════════════════════════════════════════════
 
-export type User              = typeof user.$inferSelect
-export type NewUser           = typeof user.$inferInsert
-export type Session           = typeof session.$inferSelect
-export type Account           = typeof account.$inferSelect
-export type Passkey           = typeof passkey.$inferSelect
-export type TwoFactor         = typeof twoFactor.$inferSelect
-export type Waitlist          = typeof waitlist.$inferSelect
-export type NewWaitlist       = typeof waitlist.$inferInsert
-export type UserProfile       = typeof userProfiles.$inferSelect
-export type NewUserProfile    = typeof userProfiles.$inferInsert
-export type BankConnection    = typeof bankConnections.$inferSelect
-export type NewBankConnection = typeof bankConnections.$inferInsert
-export type SyncLog           = typeof syncLog.$inferSelect
+export type User               = typeof user.$inferSelect
+export type NewUser            = typeof user.$inferInsert
+export type Session            = typeof session.$inferSelect
+export type Account            = typeof account.$inferSelect
+export type Passkey            = typeof passkey.$inferSelect
+export type TwoFactor          = typeof twoFactor.$inferSelect
+export type Waitlist           = typeof waitlist.$inferSelect
+export type NewWaitlist        = typeof waitlist.$inferInsert
+export type UserProfile        = typeof userProfiles.$inferSelect
+export type NewUserProfile     = typeof userProfiles.$inferInsert
+export type BankConnection     = typeof bankConnections.$inferSelect
+export type NewBankConnection  = typeof bankConnections.$inferInsert
+export type SyncLog            = typeof syncLog.$inferSelect
+export type Conversation       = typeof conversations.$inferSelect
+export type NewConversation    = typeof conversations.$inferInsert
+export type ChatMessage        = typeof chatMessages.$inferSelect
+export type NewChatMessage     = typeof chatMessages.$inferInsert

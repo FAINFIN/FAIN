@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { rateLimit } from '@/lib/api/ratelimit'
 import { auth } from '@/lib/auth/config'
 import { headers } from 'next/headers'
+import { db } from '@/lib/db/client.server'
+import { conversations, chatMessages } from '@/lib/db/schema.server'
+import { eq, and } from 'drizzle-orm'
+import { encrypt } from '@/lib/crypto/encrypt.server'
 
 export const dynamic = 'force-dynamic'
 
@@ -65,9 +69,57 @@ export async function POST(req: NextRequest) {
   const rl = await rateLimit(`ai:${session.user.id}`, 30, 60)
   if (!rl.success) return NextResponse.json({ error: 'Too many requests — wait a minute' }, { status: 429 })
 
-  const { message, context, history = [] } = await req.json()
+  const { message, context, history = [], conversationId: existingConvId } = await req.json()
   if (!message?.trim()) return NextResponse.json({ error: 'message required' }, { status: 400 })
 
+  // ── Resolve or create the conversation ───────────────────────────────────────
+  let convId: string
+  let isNewConversation = false
+
+  if (existingConvId) {
+    // Verify ownership
+    const [conv] = await db
+      .select({ id: conversations.id })
+      .from(conversations)
+      .where(and(
+        eq(conversations.id,     existingConvId),
+        eq(conversations.userId, session.user.id),
+      ))
+      .limit(1)
+
+    if (!conv) return NextResponse.json({ error: 'Conversation not found' }, { status: 404 })
+    convId = existingConvId
+  } else {
+    // Auto-create a conversation titled from the first message
+    convId            = crypto.randomUUID()
+    isNewConversation = true
+    const title       = (message as string).length > 120
+      ? (message as string).slice(0, 120) + '…'
+      : (message as string)
+    const now = new Date()
+    await db.insert(conversations).values({
+      id:        convId,
+      userId:    session.user.id,
+      title,
+      createdAt: now,
+      updatedAt: now,
+    })
+  }
+
+  // ── Save user message (encrypted) ────────────────────────────────────────────
+  const userMsgId = crypto.randomUUID()
+  const userEnc   = encrypt(message as string)
+  await db.insert(chatMessages).values({
+    id:             userMsgId,
+    conversationId: convId,
+    userId:         session.user.id,
+    role:           'user',
+    contentEnc:     userEnc.enc,
+    iv:             userEnc.iv,
+    createdAt:      new Date(),
+  })
+
+  // ── Stream Claude response ────────────────────────────────────────────────────
   const userContent = context
     ? `<financial_context>\n${context}\n</financial_context>\n\n${message}`
     : message
@@ -78,7 +130,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'AI not configured' }, { status: 503 })
   }
 
-  // Lazy-init Anthropic inside the handler — never runs at build time
   const Anthropic = (await import('@anthropic-ai/sdk')).default
   const anthropic = new Anthropic({ apiKey })
 
@@ -89,7 +140,7 @@ export async function POST(req: NextRequest) {
       max_tokens: 2048,
       system:     SYSTEM,
       messages: [
-        ...history.slice(-12).map((m: {role: string; content: string}) => ({
+        ...history.slice(-12).map((m: { role: string; content: string }) => ({
           role:    m.role as 'user' | 'assistant',
           content: m.content,
         })),
@@ -101,19 +152,54 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'AI unavailable' }, { status: 503 })
   }
 
-  // Return as a ReadableStream (Server-Sent Events compatible)
-  const encoder = new TextEncoder()
+  // ── Return SSE stream ─────────────────────────────────────────────────────────
+  const encoder       = new TextEncoder()
+  const assistantMsgId = crypto.randomUUID()
+
   const readable = new ReadableStream({
     async start(controller) {
       try {
+        // First event: send convId so client knows the conversation ID
+        // (critical for new conversations created server-side)
+        controller.enqueue(encoder.encode(
+          `data: ${JSON.stringify({ convId, isNew: isNewConversation })}\n\n`
+        ))
+
+        let fullResponse = ''
+
         for await (const chunk of stream) {
           if (chunk.type === 'content_block_delta' && chunk.delta.type === 'text_delta') {
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text: chunk.delta.text })}\n\n`))
+            fullResponse += chunk.delta.text
+            controller.enqueue(encoder.encode(
+              `data: ${JSON.stringify({ text: chunk.delta.text })}\n\n`
+            ))
           }
         }
+
         const final = await stream.finalMessage()
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ done: true, usage: final.usage })}\n\n`))
+        controller.enqueue(encoder.encode(
+          `data: ${JSON.stringify({ done: true, usage: final.usage })}\n\n`
+        ))
         controller.close()
+
+        // ── Save assistant message (encrypted) after streaming ────────────────
+        if (fullResponse) {
+          const assistantEnc = encrypt(fullResponse)
+          await Promise.all([
+            db.insert(chatMessages).values({
+              id:             assistantMsgId,
+              conversationId: convId,
+              userId:         session.user.id,
+              role:           'assistant',
+              contentEnc:     assistantEnc.enc,
+              iv:             assistantEnc.iv,
+              createdAt:      new Date(),
+            }),
+            db.update(conversations)
+              .set({ updatedAt: new Date() })
+              .where(eq(conversations.id, convId)),
+          ])
+        }
       } catch (e) {
         const err = e as Record<string, unknown>
         console.error('[ai/chat] stream error:', JSON.stringify({
