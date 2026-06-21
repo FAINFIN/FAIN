@@ -155,6 +155,16 @@ export const auth = betterAuth({
     cookieCache: { enabled: true, maxAge: 30 * 24 * 60 * 60 }, // 30 days
   },
 
+  account: {
+    accountLinking: {
+      enabled: true,
+      // Trust Google and Microsoft to link to existing email accounts.
+      // This lets users who registered with email/password sign in via OAuth
+      // without being blocked by the "account_not_linked" error.
+      trustedProviders: ['google', 'microsoft'],
+    },
+  },
+
   // Email + password — primary email path (OTP email verification on signup)
   emailAndPassword: {
     enabled: true,
