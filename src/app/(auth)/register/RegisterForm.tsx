@@ -1,11 +1,27 @@
 'use client'
 
-import { useState, FormEvent } from 'react'
+import { useState, useEffect, FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { authClient } from '@/lib/auth/client'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { useLocale } from '@/lib/i18n/LocaleContext'
+
+// ─── Duplicate email detection ────────────────────────────────────────────────
+// better-auth may return various messages for "email already exists" — normalise them.
+
+function isDuplicateEmail(err: { code?: string; message?: string }): boolean {
+  const code = (err.code ?? '').toUpperCase()
+  const msg  = (err.message ?? '').toLowerCase()
+  return (
+    code === 'USER_ALREADY_EXISTS'  ||
+    code === 'EMAIL_EXISTS'         ||
+    msg.includes('already exists')  ||
+    msg.includes('already in use')  ||
+    msg.includes('email is taken')  ||
+    msg.includes('account already')
+  )
+}
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 
@@ -49,6 +65,16 @@ function CheckIcon({ ok }: { ok: boolean }) {
   )
 }
 
+/** SVG mail icon — no emoji per Fain design rules */
+function MailIcon() {
+  return (
+    <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--tan-9)' }}>
+      <rect x="2" y="4" width="20" height="16" rx="2"/>
+      <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+    </svg>
+  )
+}
+
 // ─── Step 1: Create account ───────────────────────────────────────────────────
 
 function StepCreate({
@@ -61,15 +87,14 @@ function StepCreate({
   setLoading: (v: boolean) => void
 }) {
   const router = useRouter()
-  const { t } = useLocale()
-  const a = t.auth
+  const { t }  = useLocale()
+  const a      = t.auth
 
-  // Password rules wired to translations
   const rules = [
-    { label: a.rule8chars,    test: (p: string) => p.length >= 8 },
-    { label: a.ruleNumber,    test: (p: string) => /\d/.test(p) },
-    { label: a.ruleUpper,     test: (p: string) => /[A-Z]/.test(p) },
-    { label: a.ruleSpecial,   test: (p: string) => /[^A-Za-z0-9]/.test(p) },
+    { label: a.rule8chars,  test: (p: string) => p.length >= 8 },
+    { label: a.ruleNumber,  test: (p: string) => /\d/.test(p) },
+    { label: a.ruleUpper,   test: (p: string) => /[A-Z]/.test(p) },
+    { label: a.ruleSpecial, test: (p: string) => /[^A-Za-z0-9]/.test(p) },
   ]
 
   const [name,     setName]     = useState('')
@@ -77,15 +102,24 @@ function StepCreate({
   const [password, setPassword] = useState('')
   const [showPw,   setShowPw]   = useState(false)
   const [provider, setProvider] = useState<string | null>(null)
-  const [error,    setError]    = useState('')
+  const [error,    setError]    = useState<React.ReactNode>('')
 
   const passOk = rules.every(r => r.test(password))
+
+  // Absolute callbackURL so better-auth redirect validation never rejects it.
+  function getCallbackURL() {
+    if (typeof window === 'undefined') return '/onboarding'
+    return `${window.location.origin}/onboarding`
+  }
 
   async function handleSocial(p: 'google' | 'microsoft') {
     setLoading(true)
     setProvider(p)
     setError('')
-    await authClient.signIn.social({ provider: p, callbackURL: '/onboarding' })
+    // Social sign-in navigates away; code below only runs on synchronous error.
+    await authClient.signIn.social({ provider: p, callbackURL: getCallbackURL() })
+    setLoading(false)
+    setProvider(null)
   }
 
   async function handleSubmit(e: FormEvent) {
@@ -97,12 +131,30 @@ function StepCreate({
 
     const res = await authClient.signUp.email({ name, email, password, callbackURL: '/onboarding' })
     setLoading(false)
+    setProvider(null)
 
-    if (res.error) {
-      setError(res.error.message ?? 'Something went wrong. Please try again.')
-    } else {
-      onVerify(email)
+    if (res?.error) {
+      // Duplicate email: actionable message with a link to sign in
+      if (isDuplicateEmail(res.error)) {
+        setError(
+          <span>
+            An account with this email already exists.{' '}
+            <button
+              type="button"
+              onClick={() => router.push('/login')}
+              style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: 'var(--tan-11)', fontWeight: 600, fontSize: 'inherit', textDecoration: 'underline' }}
+            >
+              Sign in instead
+            </button>
+          </span>
+        )
+      } else {
+        setError(res.error.message ?? 'Something went wrong. Please try again.')
+      }
+      return
     }
+
+    onVerify(email)
   }
 
   return (
@@ -167,7 +219,7 @@ function StepCreate({
             autoComplete="new-password"
             required
           />
-          {/* Password requirements */}
+          {/* Password strength checklist */}
           {password.length > 0 && (
             <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 5 }}>
               {rules.map(r => (
@@ -187,7 +239,9 @@ function StepCreate({
           </button>
         </div>
 
-        {error && <p style={{ color: 'var(--neg)', fontSize: 13, margin: 0 }}>{error}</p>}
+        {error && (
+          <p role="alert" style={{ color: 'var(--neg)', fontSize: 13, margin: 0 }}>{error}</p>
+        )}
 
         <Button
           variant="primary"
@@ -230,25 +284,49 @@ function StepCreate({
 }
 
 // ─── Step 2: Verify email ─────────────────────────────────────────────────────
+// SVG envelope icon (no emoji — design rule: never use emoji).
+// Countdown timer prevents rapid resend clicks.
+
+const RESEND_COOLDOWN = 30 // seconds
 
 function StepVerify({ email, onBack }: { email: string; onBack: () => void }) {
-  const { t } = useLocale()
-  const a = t.auth
-  const [resent,  setResent]  = useState(false)
-  const [loading, setLoading] = useState(false)
+  const { t }  = useLocale()
+  const a      = t.auth
+  const [loading,    setLoading]    = useState(false)
+  const [resendError, setResendError] = useState('')
+  const [sent,        setSent]        = useState(true)   // email already sent on sign-up
+  const [countdown,   setCountdown]   = useState(RESEND_COOLDOWN)
+
+  // Count down from RESEND_COOLDOWN; reset when user successfully resends
+  useEffect(() => {
+    if (countdown <= 0) return
+    const id = setTimeout(() => setCountdown(c => c - 1), 1000)
+    return () => clearTimeout(id)
+  }, [countdown])
+
+  const canResend = countdown <= 0 && !loading
 
   async function handleResend() {
     setLoading(true)
-    await authClient.sendVerificationEmail({ email, callbackURL: '/onboarding' })
-    setLoading(false)
-    setResent(true)
-    setTimeout(() => setResent(false), 30_000)
+    setResendError('')
+    try {
+      await authClient.sendVerificationEmail({ email, callbackURL: '/onboarding' })
+      setSent(true)
+      setCountdown(RESEND_COOLDOWN)
+    } catch {
+      setResendError('Could not send email. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
     <div className="form" style={{ marginTop: 26 }}>
       <div style={{ textAlign: 'center', padding: '16px 0 24px' }}>
-        <div style={{ fontSize: 42, marginBottom: 14 }}>📬</div>
+        {/* SVG mail icon — no emoji per design rules */}
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 14 }}>
+          <MailIcon />
+        </div>
         <p className="lead" style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 600 }}>
           {a.checkEmail}
         </p>
@@ -260,17 +338,29 @@ function StepVerify({ email, onBack }: { email: string; onBack: () => void }) {
         </p>
       </div>
 
+      {resendError && (
+        <p role="alert" style={{ color: 'var(--neg)', fontSize: 13, margin: '0 0 10px', textAlign: 'center' }}>
+          {resendError}
+        </p>
+      )}
+
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         <Button
           variant="outline"
           size="lg"
           onClick={handleResend}
           loading={loading}
-          disabled={resent}
+          disabled={!canResend}
           style={{ width: '100%' }}
           type="button"
         >
-          {resent ? a.resent : a.resend}
+          {loading
+            ? 'Sending…'
+            : countdown > 0
+              ? `Resend in ${countdown}s`
+              : sent
+                ? a.resend ?? 'Resend verification email'
+                : a.resend ?? 'Resend verification email'}
         </Button>
 
         <button

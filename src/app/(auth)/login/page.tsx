@@ -4,7 +4,14 @@ import { LoginForm } from './LoginForm'
 
 export const metadata: Metadata = { title: 'Log in' }
 
-export default function LoginPage() {
+// Next.js 16: searchParams is a Promise — must be awaited in async server components.
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string; from?: string }>
+}) {
+  const params = await searchParams
+
   return (
     <div className="auth-shell">
       <div className="auth-left">
@@ -18,7 +25,9 @@ export default function LoginPage() {
         <div className="auth-main">
           <h2 className="serif">Welcome <span className="em">back</span>.</h2>
           <p className="lead">Sign in to your Fain account.</p>
-          <LoginForm />
+          {/* oauthError: better-auth sets ?error= on OAuth failure (access_denied, account_not_linked, …) */}
+          {/* from: proxy middleware sets ?from=<path> when redirecting unauthenticated users */}
+          <LoginForm oauthError={params.error} from={params.from} />
         </div>
 
         <div className="auth-foot">
