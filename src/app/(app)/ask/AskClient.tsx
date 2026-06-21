@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useRef, useEffect, Suspense, type ReactNode } from 'react'
+import { useState, useRef, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useAiChat, type Message } from '@/lib/ai/useAiChat'
+import { FainResponse } from '@/lib/ai/FainResponse'
 import { useUser } from '@/lib/auth/UserContext'
 import { useLocale } from '@/lib/i18n/LocaleContext'
 import { getDb } from '@/lib/db/schema'
@@ -34,201 +35,48 @@ const CHIP_ICONS = [
   </svg>,
 ]
 
-// ─── Inline metric [[label|value]] ───────────────────────────────
-function InlineMetric({ label, value }: { label: string; value: string }) {
-  return (
-    <span style={{
-      display: 'inline-flex', alignItems: 'baseline', gap: 4,
-      background: 'var(--stone-2)', border: '1px solid var(--border-subtle)',
-      borderRadius: 8, padding: '2px 8px', margin: '0 2px',
-      fontSize: '0.91em', fontFamily: 'var(--font-num)',
-    }}>
-      <span style={{ color: 'var(--text-low)', fontSize: '0.88em' }}>{label}</span>
-      <span style={{ fontWeight: 700, color: 'var(--text-high)' }}>{value}</span>
-    </span>
-  )
-}
-
-// ─── Inline text parser: bold, italic, code, [[metric|value]] ────
-function renderInline(text: string, baseKey: string): ReactNode[] {
-  // Pattern matches [[label|value]], **bold**, *italic*, `code`
-  const pattern = /(\[\[([^|]+)\|([^\]]+)\]\])|(\*\*(.+?)\*\*)|(\*(.+?)\*)|(`([^`]+)`)/g
-  const parts: ReactNode[] = []
-  let last = 0
-  let m: RegExpExecArray | null
-  let idx = 0
-
-  while ((m = pattern.exec(text)) !== null) {
-    if (m.index > last) parts.push(<span key={`${baseKey}-t${idx++}`}>{text.slice(last, m.index)}</span>)
-
-    if (m[1]) { // [[label|value]]
-      parts.push(<InlineMetric key={`${baseKey}-m${idx++}`} label={m[2]!} value={m[3]!} />)
-    } else if (m[4]) { // **bold**
-      parts.push(<strong key={`${baseKey}-b${idx++}`}>{m[5]}</strong>)
-    } else if (m[6]) { // *italic*
-      parts.push(<em key={`${baseKey}-i${idx++}`}>{m[7]}</em>)
-    } else if (m[8]) { // `code`
-      parts.push(
-        <code key={`${baseKey}-c${idx++}`} style={{
-          fontFamily: 'var(--font-num)', background: 'var(--stone-2)',
-          borderRadius: 4, padding: '1px 5px', fontSize: '0.88em',
-          border: '1px solid var(--border-subtle)',
-        }}>
-          {m[9]}
-        </code>
-      )
-    }
-    last = m.index + m[0].length
-  }
-  if (last < text.length) parts.push(<span key={`${baseKey}-t${idx++}`}>{text.slice(last)}</span>)
-  return parts
-}
-
-// ─── Block markdown renderer ──────────────────────────────────────
-// Handles: paragraphs, bullet lists, numbered lists, ### headers, code blocks
-function renderContent(text: string): ReactNode {
-  const lines = text.split('\n')
-  const blocks: ReactNode[] = []
-  let blockKey = 0
-  let i = 0
-
-  // Detect fenced code blocks
-  const CODE_FENCE = /^```/
-
-  while (i < lines.length) {
-    const line = lines[i]!
-
-    // Skip blank lines
-    if (!line.trim()) { i++; continue }
-
-    // Fenced code block
-    if (CODE_FENCE.test(line)) {
-      const codeLines: string[] = []
-      i++
-      while (i < lines.length && !CODE_FENCE.test(lines[i]!)) {
-        codeLines.push(lines[i]!)
-        i++
-      }
-      i++ // consume closing ```
-      blocks.push(
-        <pre key={blockKey++} style={{
-          background: 'var(--stone-2)', border: '1px solid var(--border-subtle)',
-          borderRadius: 8, padding: '10px 14px', margin: '8px 0',
-          fontFamily: 'var(--font-num)', fontSize: '0.85em',
-          overflowX: 'auto', whiteSpace: 'pre',
-        }}>
-          <code>{codeLines.join('\n')}</code>
-        </pre>
-      )
-      continue
-    }
-
-    // Heading (### or ## or #)
-    if (/^#{1,3}\s/.test(line)) {
-      const level = line.match(/^(#{1,3})/)?.[1]?.length ?? 2
-      const content = line.replace(/^#{1,3}\s+/, '')
-      const Tag = (['h3', 'h4', 'h5'] as const)[level - 1] ?? 'h5'
-      blocks.push(
-        <Tag key={blockKey++} style={{
-          margin: '10px 0 4px', fontWeight: 700,
-          fontSize: level === 1 ? '1.1em' : '1em',
-        }}>
-          {renderInline(content, `hd-${blockKey}`)}
-        </Tag>
-      )
-      i++
-      continue
-    }
-
-    // Bullet list
-    if (/^[-*•]\s/.test(line)) {
-      const items: ReactNode[] = []
-      let listKey = 0
-      while (i < lines.length && /^[-*•]\s/.test(lines[i]!)) {
-        const content = lines[i]!.replace(/^[-*•]\s+/, '')
-        items.push(
-          <li key={listKey++} style={{ marginBottom: 2 }}>
-            {renderInline(content, `ul-${blockKey}-${listKey}`)}
-          </li>
-        )
-        i++
-      }
-      blocks.push(
-        <ul key={blockKey++} style={{ margin: '4px 0', paddingLeft: 20, listStyleType: 'disc' }}>
-          {items}
-        </ul>
-      )
-      continue
-    }
-
-    // Numbered list
-    if (/^\d+[.)]\s/.test(line)) {
-      const items: ReactNode[] = []
-      let listKey = 0
-      while (i < lines.length && /^\d+[.)]\s/.test(lines[i]!)) {
-        const content = lines[i]!.replace(/^\d+[.)]\s+/, '')
-        items.push(
-          <li key={listKey++} style={{ marginBottom: 2 }}>
-            {renderInline(content, `ol-${blockKey}-${listKey}`)}
-          </li>
-        )
-        i++
-      }
-      blocks.push(
-        <ol key={blockKey++} style={{ margin: '4px 0', paddingLeft: 20 }}>
-          {items}
-        </ol>
-      )
-      continue
-    }
-
-    // Paragraph: collect consecutive non-special lines
-    const paraLines: string[] = []
-    while (
-      i < lines.length &&
-      lines[i]!.trim() &&
-      !CODE_FENCE.test(lines[i]!) &&
-      !/^#{1,3}\s/.test(lines[i]!) &&
-      !/^[-*•]\s/.test(lines[i]!) &&
-      !/^\d+[.)]\s/.test(lines[i]!)
-    ) {
-      paraLines.push(lines[i]!)
-      i++
-    }
-    if (paraLines.length) {
-      blocks.push(
-        <p key={blockKey++} style={{ margin: '4px 0', lineHeight: 1.6 }}>
-          {renderInline(paraLines.join(' '), `p-${blockKey}`)}
-        </p>
-      )
-    }
+// ─── Message row ─────────────────────────────────────────────────
+// User messages: right-aligned dark bubble.
+// AI messages: fain mark + FainResponse card while done streaming,
+//              fain mark + typing dots while the stream is in flight.
+function MessageRow({
+  msg,
+  isStreaming,
+  onFollowUp,
+}: {
+  msg:         Message
+  isStreaming: boolean   // true only for the last message being built
+  onFollowUp:  (q: string) => void
+}) {
+  // ── User bubble ──
+  if (msg.role === 'user') {
+    return (
+      <div className="chat-row chat-row--user">
+        <div className="chat-bubble chat-bubble--user">{msg.content}</div>
+      </div>
+    )
   }
 
-  return <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>{blocks}</div>
-}
-
-// ─── Message bubble ───────────────────────────────────────────────
-function MessageBubble({ msg }: { msg: Message }) {
-  const isUser = msg.role === 'user'
-  return (
-    <div className={cn('chat-row', isUser && 'chat-row--user')}>
-      {!isUser && (
-        <div className="mark" style={{ width: 30, height: 30, borderRadius: 9, fontSize: 15, flex: '0 0 auto', marginTop: 2 }}>f</div>
-      )}
-      <div className={cn('chat-bubble', isUser ? 'chat-bubble--user' : 'chat-bubble--ai')}>
-        {isUser ? msg.content : renderContent(msg.content)}
+  // ── AI: typing indicator while streaming ──
+  if (isStreaming) {
+    return (
+      <div className="chat-row">
+        <div className="fain-mark" aria-hidden="true" />
+        <div className="chat-bubble chat-bubble--ai" style={{ padding: '12px 16px' }}>
+          <span className="typing-dots"><span /><span /><span /></span>
+        </div>
       </div>
-    </div>
-  )
-}
+    )
+  }
 
-function TypingIndicator() {
+  // ── AI: full structured response card ──
   return (
-    <div className="chat-row">
-      <div className="mark" style={{ width: 30, height: 30, borderRadius: 9, fontSize: 15, flex: '0 0 auto', marginTop: 2 }}>f</div>
-      <div className="chat-bubble chat-bubble--ai" style={{ padding: '12px 16px' }}>
-        <span className="typing-dots"><span /><span /><span /></span>
-      </div>
+    <div className="chat-row chat-row--fain">
+      <div className="fain-mark" aria-hidden="true" />
+      <FainResponse
+        content={msg.content}
+        onFollowUp={onFollowUp}
+      />
     </div>
   )
 }
@@ -530,8 +378,14 @@ function AskClientInner() {
         ) : (
           /* ── Chat thread ── */
           <div className="ask-thread">
-            {messages.map((msg, i) => <MessageBubble key={i} msg={msg} />)}
-            {streaming && <TypingIndicator />}
+            {messages.map((msg, i) => (
+              <MessageRow
+                key={msg.id}
+                msg={msg}
+                isStreaming={streaming && i === messages.length - 1 && msg.role === 'assistant'}
+                onFollowUp={send}
+              />
+            ))}
             {error && (
               <div style={{ textAlign: 'center', padding: '10px 0', color: 'var(--neg)', fontSize: 13 }}>
                 {t.ask.errorMsg}
