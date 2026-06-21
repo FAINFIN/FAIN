@@ -1,5 +1,8 @@
 import type { Metadata } from 'next'
+import { redirect } from 'next/navigation'
+import { headers } from 'next/headers'
 import Link from 'next/link'
+import { auth } from '@/lib/auth/config'
 import { WaitlistForm } from '@/components/landing/WaitlistForm'
 import { BankCarousel } from '@/components/landing/BankCarousel'
 
@@ -55,7 +58,11 @@ const FEATURES = [
   },
 ]
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  // Authenticated users should never see the landing page — send them straight to the app.
+  const session = await auth.api.getSession({ headers: await headers() })
+  if (session) redirect('/ask')
+
   return (
     <>
       {/* ── NAV ── */}

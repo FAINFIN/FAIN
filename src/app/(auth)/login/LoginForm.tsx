@@ -163,7 +163,10 @@ function StepSignIn({
     setLoading(true)
     setProvider(p)
     setError('')
-    await authClient.signIn.social({ provider: p, callbackURL: '/ask' })
+    // Use an absolute callbackURL so better-auth's redirect validation
+    // can never reject or fall back to the root URL.
+    const callbackURL = `${window.location.origin}/ask`
+    await authClient.signIn.social({ provider: p, callbackURL })
   }
 
   async function handleSubmit(e: FormEvent) {
