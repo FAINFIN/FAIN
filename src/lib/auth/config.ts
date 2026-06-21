@@ -162,6 +162,10 @@ export const auth = betterAuth({
       // This lets users who registered with email/password sign in via OAuth
       // without being blocked by the "account_not_linked" error.
       trustedProviders: ['google', 'microsoft'],
+      // Don't require the existing local account to have a verified email.
+      // Without this, better-auth blocks linking even for trusted providers
+      // when the email/password account was created without email verification.
+      requireLocalEmailVerified: false,
     },
   },
 
