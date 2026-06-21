@@ -360,6 +360,8 @@ function ChatInput({
       <div className="chat-input-card">
         <textarea
           ref={ref}
+          id="chat-input"
+          name="message"
           className="chat-input-field"
           value={draft}
           onChange={e => setDraft(e.target.value)}
