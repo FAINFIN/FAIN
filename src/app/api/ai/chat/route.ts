@@ -74,7 +74,12 @@ export async function POST(req: NextRequest) {
         controller.enqueue(encoder.encode(`data: ${JSON.stringify({ done: true, usage: final.usage })}\n\n`))
         controller.close()
       } catch (e) {
-        console.error('[ai/chat] stream error:', e)
+        const err = e as Record<string, unknown>
+        console.error('[ai/chat] stream error:', JSON.stringify({
+          name:    err?.name    ?? 'unknown',
+          message: err?.message ?? String(e),
+          status:  err?.status  ?? null,
+        }))
         controller.error(e)
       }
     },
