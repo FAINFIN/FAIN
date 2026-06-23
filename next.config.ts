@@ -3,6 +3,7 @@ import type { NextConfig } from 'next'
 const nextConfig: NextConfig = {
   poweredByHeader: false, // removes X-Powered-By: Next.js
   experimental: {},
+  transpilePackages: ['mermaid'],
   images: {
     remotePatterns: [],
   },
