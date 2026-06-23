@@ -492,13 +492,6 @@ function SidebarInner({ user }: SidebarProps) {
   const recentConvs   = filteredConvs.filter(c => !pinned.includes(c.id))
   const displayConvs  = [...pinnedConvs, ...recentConvs].slice(0, 6)
 
-  const IMPORTS = [
-    { label: 'Accounting data',    slug: 'accounting' },
-    { label: 'Bank transactions',  slug: 'bank-transactions' },
-    { label: 'Accounts data',      slug: 'accounts' },
-    { label: 'Suppliers data',     slug: 'suppliers' },
-    { label: 'Invoices',           slug: 'invoices' },
-  ]
 
   return (
     <>
@@ -670,23 +663,7 @@ function SidebarInner({ user }: SidebarProps) {
           {/* ─ §5 Imports ─ */}
           <div style={{ paddingTop: 6 }}>
             <SectionLabel>Imports</SectionLabel>
-            {IMPORTS.map(imp => (
-              <Link
-                key={imp.slug}
-                href={`/import/${imp.slug}`}
-                className="sidebar-nav-link"
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 9,
-                  padding: '7px 10px', borderRadius: 9,
-                  textDecoration: 'none', color: 'var(--text-mid)',
-                  fontSize: 13, fontWeight: 400,
-                  transition: 'background .12s, color .12s',
-                }}
-              >
-                <span style={{ opacity: 0.6 }}><ImportIcon /></span>
-                {imp.label}
-              </Link>
-            ))}
+            <NavLink href="/import" icon={<ImportIcon />} label="Import Data" />
           </div>
 
           <div style={{ height: 1, background: 'var(--border-subtle)', margin: '4px 2px' }} />
