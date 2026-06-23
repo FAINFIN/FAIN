@@ -186,8 +186,7 @@ function SettingsIcon() {
 function PinIcon({ filled = false }: { filled?: boolean }) {
   return (
     <svg width="11" height="11" viewBox="0 0 24 24" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-      {!filled && <circle cx="12" cy="10" r="3"/>}
+      <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
     </svg>
   )
 }
@@ -478,6 +477,7 @@ function SidebarInner({ user }: SidebarProps) {
   const [hoveredConv,   setHoveredConv]   = useState<string | null>(null)
 
   const displayName = user.name ?? user.email.split('@')[0] ?? user.email
+  const firstName   = user.name?.split(' ')[0] ?? displayName
 
   async function handleSignOut() {
     await authClient.signOut()
@@ -654,8 +654,8 @@ function SidebarInner({ user }: SidebarProps) {
           {/* ─ §4 Activity ─ */}
           <div style={{ paddingTop: 6 }}>
             <SectionLabel>Activity</SectionLabel>
-            <NavLink href="/transactions" icon={<TxIcon />}       label="Transactions" />
             <NavLink href="/activity"     icon={<ActivityIcon />} label="Activity & Feed" />
+            <NavLink href="/transactions" icon={<TxIcon />}       label="Transactions" />
           </div>
 
           <div style={{ height: 1, background: 'var(--border-subtle)', margin: '4px 2px' }} />
@@ -666,27 +666,6 @@ function SidebarInner({ user }: SidebarProps) {
             <NavLink href="/import" icon={<ImportIcon />} label="Import Data" />
           </div>
 
-          <div style={{ height: 1, background: 'var(--border-subtle)', margin: '4px 2px' }} />
-
-          {/* ─ §6 Settings ─ */}
-          <div style={{ paddingTop: 6, paddingBottom: 2 }}>
-            <SectionLabel>Settings</SectionLabel>
-            <button
-              onClick={() => setSettingsOpen(true)}
-              className="sidebar-nav-link"
-              style={{
-                display: 'flex', alignItems: 'center', gap: 9,
-                padding: '7px 10px', borderRadius: 9, width: '100%',
-                border: 'none', background: 'transparent',
-                color: 'var(--text-mid)', fontSize: 13, fontWeight: 400,
-                cursor: 'pointer', textAlign: 'left',
-                transition: 'background .12s, color .12s',
-              }}
-            >
-              <span style={{ opacity: 0.6 }}><SettingsIcon /></span>
-              Preferences
-            </button>
-          </div>
         </div>
 
         {/* ── Connected banks ── */}
@@ -739,7 +718,7 @@ function SidebarInner({ user }: SidebarProps) {
               {user.image ? (
                 <img
                   src={user.image}
-                  alt={displayName}
+                  alt={firstName}
                   style={{ width: 28, height: 28, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }}
                 />
               ) : (
@@ -747,7 +726,7 @@ function SidebarInner({ user }: SidebarProps) {
                   className="avatar"
                   style={{ width: 28, height: 28, borderRadius: 8, fontSize: 11, flexShrink: 0 }}
                 >
-                  {displayName[0]?.toUpperCase() ?? '?'}
+                  {firstName[0]?.toUpperCase() ?? '?'}
                 </div>
               )}
               <div style={{ minWidth: 0 }}>
@@ -755,7 +734,7 @@ function SidebarInner({ user }: SidebarProps) {
                   fontSize: 13, fontWeight: 600, color: 'var(--text-high)',
                   overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                 }}>
-                  {displayName}
+                  {firstName}
                 </div>
               </div>
             </button>
