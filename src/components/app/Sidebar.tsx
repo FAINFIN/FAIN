@@ -669,37 +669,22 @@ function SidebarInner({ user }: SidebarProps) {
         </div>
 
         {/* ── Connected banks ── */}
-        <div style={{ padding: '10px 12px 6px', borderTop: '1px solid var(--border-subtle)' }}>
-          {connections && connections.length > 0 ? (
-            <>
-              <div style={{
-                fontSize: 10.5, fontWeight: 600, color: 'var(--text-low)',
-                letterSpacing: '0.07em', textTransform: 'uppercase', marginBottom: 7,
-              }}>
-                {s.connected}
-              </div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
-                {connections.map(conn => (
-                  <BankPill key={conn.id} name={conn.provider} />
-                ))}
-              </div>
-            </>
-          ) : (
-            <Link
-              href="/connect-bank"
-              style={{
-                display: 'flex', alignItems: 'center', gap: 7,
-                padding: '8px 10px', borderRadius: 9,
-                background: 'var(--tan-soft)', border: '1px dashed var(--tan-9)',
-                color: 'var(--tan-11)', fontSize: 12.5, fontWeight: 500,
-                textDecoration: 'none',
-              }}
-            >
-              <BankIcon />
-              {s.connectBank}
-            </Link>
-          )}
-        </div>
+        {/* [DEV] Bank connect UI hidden — restore when Salt Edge integration is ready */}
+        {connections && connections.length > 0 && (
+          <div style={{ padding: '10px 12px 6px', borderTop: '1px solid var(--border-subtle)' }}>
+            <div style={{
+              fontSize: 10.5, fontWeight: 600, color: 'var(--text-low)',
+              letterSpacing: '0.07em', textTransform: 'uppercase', marginBottom: 7,
+            }}>
+              {s.connected}
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+              {connections.map(conn => (
+                <BankPill key={conn.id} name={conn.provider} />
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* ── User footer ── */}
         <div
